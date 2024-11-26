@@ -23,39 +23,39 @@ class Smt:
         self.request = request
 
     def send(self):
-        try:
-            serializer = URLSafeTimedSerializer(
-                app.config["SECRET_KEY"])
+        # try:
+        serializer = URLSafeTimedSerializer(
+            app.config["SECRET_KEY"])
 
-            url = url_for(self.endpoint, token=serializer.dumps(
-                self.email, salt=app.config["SECURITY_PASSWORD_SALT"]), _external=True)
+        url = url_for(self.endpoint, token=serializer.dumps(
+            self.email, salt=app.config["SECURITY_PASSWORD_SALT"]), _external=True)
 
-            token = Resend(
-                token=url.split("verified/")[1])
+        token = Resend(
+            token=url.split("verified/")[1])
 
-            db.session.add(token)
-            db.session.commit()
+        db.session.add(token)
+        db.session.commit()
 
-            template = render_template(
-                "smt.html", data={"url": url, "name": self.name})
+        template = render_template(
+            "smt.html", data={"url": url, "name": self.name})
 
-            msg: Message = Message(
-                recipients=[self.email], subject="Verify your Email", html=template)
+        msg: Message = Message(
+            recipients=[self.email], subject="Verify your Email", html=template)
 
-            mail.send(msg)
+        mail.send(msg)
 
-            return None, 200
+        return None, 200
 
-        except BadSignature:
-            return {"err": "Sorry, something went wrong, please try again :("}, 400
+        # except BadSignature:
+        #     return {"err": "Sorry, something went wrong, please try again :("}, 400
 
-        except Exception as e:
-            print(f"Unexpected error: {e}")
+        # except Exception as e:
+        #     print(f"Unexpected error: {e}")
 
-            return {"err": {"timed out": "Email sending timed out. Please try again later.",
-                            "connection refused": "Failed to connect to email server. Please try again later."
-                            }.get(
-                str(e), "There was an error sending the email. Please try again later.")}, 500
+        #     return {"err": {"timed out": "Email sending timed out. Please try again later.",
+        #                     "connection refused": "Failed to connect to email server. Please try again later."
+        #                     }.get(
+        #         str(e), "There was an error sending the email. Please try again later.")}, 500
 
     # def request(self):
     #     try:

@@ -2,6 +2,7 @@ import flet as ft
 
 from components.login import Login
 from components.signup import Signup
+from components.dashboard import Dashboard
 
 
 def main(page):
@@ -38,6 +39,18 @@ def main(page):
                     route="/signup",
                     controls=[
                         Signup(page)
+                    ]
+                )
+            )
+
+        if page.route == "/dashboard":
+            page.views.append(
+                ft.View(
+                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    vertical_alignment=ft.MainAxisAlignment.CENTER,
+                    route="/dashboard",
+                    controls=[
+                        Dashboard(page)
                     ]
                 )
             )
