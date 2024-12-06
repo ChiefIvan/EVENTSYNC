@@ -2,16 +2,20 @@ import flet as ft
 
 from components.login import Login
 from components.signup import Signup
-from components.dashboard import Dashboard
+from components.container import Dashboard
 
 
-def main(page):
+def main(page: ft.Page):
+    page.scroll = ft.ScrollMode.AUTO
     page.title = "EventSync"
     page.description = "Nothing Special"
+    page.route = "/dashboard"
     page.fonts = {
         "Poppins": "/fonts/Poppins-Medium.ttf",
         "Poppins-Bold": "/fonts/Poppins-Bold.ttf"
     }
+
+    page.scroll = True
 
     page.theme = ft.Theme(color_scheme_seed="blue",
                           font_family="Poppins")
@@ -21,38 +25,19 @@ def main(page):
     def route_change(e):
         page.views.clear()
 
-        page.views.append(
-            ft.View(
-                vertical_alignment=ft.MainAxisAlignment.CENTER,
-                route="/",
-                controls=[
-                    Login(page),
-                ]
+        if page.route == "/login":
+            page.views.append(
+                Login(page)
             )
-        )
 
         if page.route == "/signup":
             page.views.append(
-                ft.View(
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    vertical_alignment=ft.MainAxisAlignment.CENTER,
-                    route="/signup",
-                    controls=[
-                        Signup(page)
-                    ]
-                )
+                Signup(page)
             )
 
         if page.route == "/dashboard":
             page.views.append(
-                ft.View(
-                    horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                    vertical_alignment=ft.MainAxisAlignment.CENTER,
-                    route="/dashboard",
-                    controls=[
-                        Dashboard(page)
-                    ]
-                )
+                Dashboard(page)
             )
 
         page.update()

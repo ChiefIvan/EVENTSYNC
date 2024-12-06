@@ -3,13 +3,13 @@ import flet as ft
 from requests import post, RequestException
 
 
-class Login(ft.Column):
+class Login(ft.View):
     def __init__(self, page):
-        super().__init__()
+        super().__init__(route="/login")
 
         self.page = page
         self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
-        self.vertical_alignment = ft.MainAxisAlignment.SPACE_EVENLY
+        self.vertical_alignment = ft.MainAxisAlignment.CENTER
         self.spacing = 50
 
         if self.page.client_storage.get("token"):
@@ -66,9 +66,9 @@ class Login(ft.Column):
                 self.update()
 
         uname_field = ft.TextField(
-            label="Username", suffix_text="@gmail.com", border_width="2", color="#6c6c6c", on_change=handle_input)
+            label="Username", suffix_text="@gmail.com", border_width="1", on_change=handle_input)
         password_field = ft.TextField(label="Password", password="True", can_reveal_password=True,
-                                      border_width="2", on_change=handle_input)
+                                      border_width="1", on_change=handle_input)
         display_text = ft.Text(visible=False, color="red", size=13)
         button = ft.FilledButton(text="LOGIN", on_click=handle_login,
                                  width="500", height="40")

@@ -56,11 +56,11 @@ def signup():
             {"msg": "Email already exist!, please try another one."}
         ), 400
 
-    smt_check, error_code = Smt(endpoint="auth.email_verification",
-                                email=data["uname"], name=data["fname"]).send()
+    # smt_check, error_code = Smt(endpoint="auth.email_verification",
+    #                             email=data["uname"], name=data["fname"]).send()
 
-    if isinstance(smt_check, dict):
-        return jsonify(smt_check), error_code
+    # if isinstance(smt_check, dict):
+    #     return jsonify(smt_check), error_code
 
     new_user = User(
         email=data["uname"],
@@ -76,7 +76,6 @@ def signup():
     db.session.commit()
 
     return jsonify({"msg": "success"})
-
 
 @auth.route("/verified/<token>", methods=["GET"])
 def email_verification(token):
