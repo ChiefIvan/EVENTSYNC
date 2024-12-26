@@ -17,7 +17,7 @@ auth = Blueprint("auth", __name__)
 def login():
     data = request.json
 
-    query = User.query.filter_by(email=data["uname"])
+    query = User.query.filter_by(email=data["email"])
     is_user_exist = query.first()
 
     if not is_user_exist:
@@ -76,6 +76,7 @@ def signup():
     db.session.commit()
 
     return jsonify({"msg": "success"})
+
 
 @auth.route("/verified/<token>", methods=["GET"])
 def email_verification(token):

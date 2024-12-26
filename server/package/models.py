@@ -13,6 +13,15 @@ class User(db.Model):
     psw = db.Column(db.String(120), nullable=False)
 
 
+class Event(db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    event_name = db.Column(db.String(50), nullable=False)
+    event_description = db.Column(db.String(300), nullable=False)
+    date = db.Column(db.DateTime(timezone=True), nullable=False)
+    start_time = db.Column(db.String(20), nullable=False)
+    end_time = db.Column(db.String(20), nullable=False)
+
+
 class Revoked(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     jti = db.Column(db.String(300), nullable=False, index=True)

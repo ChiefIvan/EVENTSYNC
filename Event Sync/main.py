@@ -2,25 +2,23 @@ import flet as ft
 
 from components.login import Login
 from components.signup import Signup
-from components.container import Dashboard
+from components.container import Container
+from components.scan import Scan
 
 
 def main(page: ft.Page):
-    page.scroll = ft.ScrollMode.AUTO
+    page.scroll = ft.ScrollMode.HIDDEN
     page.title = "EventSync"
     page.description = "Nothing Special"
-    page.route = "/dashboard"
+    page.route = "/login"
     page.fonts = {
         "Poppins": "/fonts/Poppins-Medium.ttf",
         "Poppins-Bold": "/fonts/Poppins-Bold.ttf"
     }
 
     page.scroll = True
-
     page.theme = ft.Theme(color_scheme_seed="blue",
                           font_family="Poppins")
-    page.horizontal_alignment = ft.CrossAxisAlignment.CENTER
-    page.vertical_alignment = ft.MainAxisAlignment.CENTER
 
     def route_change(e):
         page.views.clear()
@@ -35,11 +33,15 @@ def main(page: ft.Page):
                 Signup(page)
             )
 
-        if page.route == "/dashboard":
+        if page.route == "/container":
             page.views.append(
-                Dashboard(page)
+                Container(page)
             )
 
+        if page.route == "/scan":
+            page.views.append(
+                Scan(page)
+            )
         page.update()
 
     def view_pop(e):

@@ -5,7 +5,7 @@ from requests import post, RequestException
 
 class Signup(ft.View):
     def __init__(self, page):
-        super().__init__(scroll=ft.ScrollMode.AUTO, route="/signup")
+        super().__init__(scroll=ft.ScrollMode.HIDDEN, route="/signup")
 
         self.page = page
         self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
@@ -55,6 +55,10 @@ class Signup(ft.View):
                     cnfrm_password_field.border_color = "red"
                     self.update()
                     return
+
+                # if email_field.value
+
+            email_value = email_field.split("@")[0]
 
             try:
                 pr.visible = True
@@ -132,6 +136,7 @@ class Signup(ft.View):
                              stroke_width=4, visible=False)
 
         self.controls = [
+            ft.Container(height=30),
             ft.Image(
                 src="icon.png",
                 width=100,
@@ -140,7 +145,7 @@ class Signup(ft.View):
             ),
 
             ft.Column(
-                spacing=40,
+                spacing=50,
                 horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                 controls=[
                     ft.Column(
@@ -171,6 +176,8 @@ class Signup(ft.View):
                             )
                         ]
                     ),
+                    ft.Container(height=30),
+
                 ]
             )
         ]

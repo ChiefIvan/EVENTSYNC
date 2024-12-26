@@ -38,7 +38,7 @@ from .auth import auth
 from .views import views
 
 from .models import (
-    User, Revoked, Resend
+    User, Revoked, Resend, Event
 )
 
 
@@ -49,7 +49,7 @@ app.register_blueprint(views, url_prefix="/views")
 def tables_exist():
     inspector = inspect(db.engine)
     tables = inspector.get_table_names()
-    required_tables = ["user", "revoked", "resend"]
+    required_tables = ["user", "revoked", "resend", "event"]
     return all(table in tables for table in required_tables)
 
 
