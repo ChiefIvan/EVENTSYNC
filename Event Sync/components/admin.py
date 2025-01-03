@@ -1,15 +1,17 @@
 import flet as ft
+import numpy as np
+
 from datetime import datetime
 from requests import post, get, delete, RequestException
+from cv2 import (VideoCapture, cvtColor, QRCodeDetector, polylines, destroyAllWindows, imshow, waitKey, COLOR_BGR2GRAY, LINE_AA)
 
-
-class Container(ft.View):
+class Admin(ft.View):
     def __init__(self, page):
-        super().__init__(route="/container", scroll=ft.ScrollMode.AUTO)
+        super().__init__(route="/admin", scroll=ft.ScrollMode.AUTO)
+
         self.page = page
         self.index = 0
         self.addr = "http://127.0.0.1:5000"
-
         self.TOKEN = self.page.client_storage.get("token")
 
         if self.TOKEN is None:
@@ -19,13 +21,39 @@ class Container(ft.View):
             self.page.client_storage.set("event_id", event_id)
             self.page.client_storage.set("event_name", event_name)
 
-            self.page.go("/scan")
+            cam = VideoCapture(0)
+            while True:
+                ret, frame = cam.read()
+                if not ret:
+                    break
+
+                gray = cvtColor(frame, COLOR_BGR2GRAY)
+                detector = QRCodeDetector()
+                data, points, _ = detector.detectAndDecode(gray)
+
+                if data:
+                    polylines(frame, [np.int32(points)], True, (255, 0, 0), 2, LINE_AA)
+
+                    print(f"QR Code: {data}")
+                    
+                    cam.release()
+                    destroyAllWindows()
+                    break
+
+                imshow(event_name, frame)
+                if waitKey(1) & 0xFF == ord("q"):
+                    break
 
         def handle_mount():
             try:
                 # pr.visible = True
 
-                response = get(f"{self.addr}/views/get_all_event")
+                response = get(
+                    f"{self.addr}/views/get_all_event",
+                    headers={
+                        "Authorization": f"Bearer {self.TOKEN}"
+                    }
+                )
 
                 events = response.json()
 
@@ -88,8 +116,7 @@ class Container(ft.View):
         def update_view(is_called_by_function=False):
             if self.index == 0:
                 self.controls = [
-                    ft.Column(
-                        alignment=ft.MainAxisAlignment.END,
+                    ft.Row(
                         controls=[
                             lv
                         ]
@@ -112,7 +139,7 @@ class Container(ft.View):
 
         def handle_nav_change(e):
             self.index = e.control.selected_index
-            page.close(self.drawer)
+            self.page.close(self.drawer)
             update_view(True)
 
         def handle_date(e):
@@ -139,6 +166,7 @@ class Container(ft.View):
             #         "http://127.0.0.1:5000/views/delete_event", json={})
             # except:
             #     ...
+
 
         def handle_add(e):
             try:
@@ -334,3 +362,6 @@ class Container(ft.View):
 
         update_view()
         handle_mount()
+
+    
+

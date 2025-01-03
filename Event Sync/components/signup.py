@@ -1,4 +1,5 @@
 import flet as ft
+from re import compile, search
 
 from requests import post, RequestException
 
@@ -27,39 +28,116 @@ class Signup(ft.View):
             ]
         }
 
+        def handle_email_change(e):
+            value = email_field.value
+            regex = compile(r"@")
+
+            if search(regex, value):
+                email_field.border_color = "red"
+                email_msg.visible = True
+                self.update()
+                return True
+
+            email_field.border_color = None
+            email_msg.visible = False
+            self.update()
+
+        def handle_fname_change(e):
+            if fname_field.value and len(fname_field.value) < 2:
+                fname_field.border_color = "red"
+                fname_msg.visible = True
+                self.update()
+                return True
+            
+            fname_field.border_color = None
+            fname_msg.visible = False
+            self.update()
+
+        
+        def handle_s_id_change(e):
+            value = s_id_field.value
+            regex = compile("^[0-9]{4}-[0-9]{4}$")
+
+            if value and not search(regex, value):
+                s_id_field.border_color = "red"
+                s_id_msg.visible = True
+                self.update()
+                return True
+            
+            s_id_field.border_color = None
+            s_id_msg.visible = False
+            self.update()
+
+        def handle_password_change(e):
+            value = password_field.value
+            regex = compile("^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9]).*$")
+
+            if value and not search(regex, value):
+                password_field.border_color = "red"
+                password_msg.visible = True
+                self.update()
+                return True
+            
+            password_field.border_color = None
+            password_msg.visible = False
+            self.update()
+
+        def handle_cnfrm_password_change(e):
+            if cnfrm_password_field.value and password_field.value != cnfrm_password_field.value:
+                cnfrm_password_field.border_color = "red"
+                cnfrm_password_msg.visible = True
+                self.update()
+                return True
+            
+            cnfrm_password_field.border_color = None
+            cnfrm_password_msg.visible = False
+            self.update()
+
         def handle_institute_dropdown(e):
+            if institute_dropdown.border_color == "red":
+                institute_dropdown.border_color = None
+
             selected_institute = institute_dropdown.value
             program_options = self.dropdownOpt.get(selected_institute, [])
             program_dropdown.options = [ft.dropdown.Option(
                 program) for program in program_options]
             self.update()
 
+        def handle_program_dropdown(e):
+            if program_dropdown.border_color == "red":
+                program_dropdown.border_color = None
+                self.update()
+
         def handle_signup(event):
+            index = 0
+            
             for field in [
-                email_field.value,
-                password_field.value,
-                s_id_field.value,
-                institute_dropdown.value,
-                program_dropdown.value,
-                password_field.value,
-                cnfrm_password_field.value
+                email_field,
+                fname_field,
+                s_id_field,
+                institute_dropdown,
+                program_dropdown,
+                password_field,
+                cnfrm_password_field
             ]:
-                if len(field) == 0:
-                    email_field.border_color = "red"
-                    fname_field.border_color = "red"
-                    password_field.border_color = "red"
-                    s_id_field.border_color = "red"
-                    institute_dropdown.border_color = "red"
-                    program_dropdown.border_color = "red"
-                    password_field.border_color = "red"
-                    cnfrm_password_field.border_color = "red"
+                if not field.value:
+                    field.border_color = "red"
+                    index += 1
                     self.update()
+
+            if index > 1:
+                return
+            
+            for entry_validation in [
+                handle_email_change,
+                handle_fname_change,
+                handle_s_id_change,
+                handle_password_change,
+                handle_cnfrm_password_change,
+            ]:
+                if entry_validation(None):
                     return
-
-                # if email_field.value
-
-            email_value = email_field.split("@")[0]
-
+                
             try:
                 pr.visible = True
                 button.visible = False
@@ -72,6 +150,8 @@ class Signup(ft.View):
                 password_field.disabled = True
                 cnfrm_password_field.disabled = True
 
+                self.update()
+
                 response = post("http://127.0.0.1:5000/auth/signup",
                                 json={
                                     "email": f"{email_field.value}@gmail.com",
@@ -82,12 +162,28 @@ class Signup(ft.View):
                                     "psw": password_field.value,
                                     "pswcfrm": cnfrm_password_field.value
                                 })
+
                 response.raise_for_status()
 
-                print(response.json())
+                self.page.snack_bar = ft.SnackBar(content=ft.Text(
+                    value="Please check your email for confirmation"),
+                    action="Okay",
+                )
+
+                self.page.snack_bar.open = True
+                self.page.update()
+
+                self.page.client_storage.set("email", email_field.value)
+                self.page.go("/otp")
 
             except RequestException as err:
-                print(err)
+                self.page.snack_bar = ft.SnackBar(content=ft.Text(
+                    value="Server Unreachable, try again!"),
+                    action="Okay",
+                )
+
+                self.page.snack_bar.open = True
+                self.page.update()
             finally:
                 pr.visible = False
                 button.visible = True
@@ -101,12 +197,18 @@ class Signup(ft.View):
                 cnfrm_password_field.disabled = False
                 self.update()
 
+        email_msg = ft.Text(value="Invalid Email, please dont include an extension!", visible=False, size=10, italic=True)
+        fname_msg = ft.Text(value="Your fullname must be greater than 1 charater!", visible=False, size=10, italic=True)
+        s_id_msg = ft.Text(value="Invalid ID format, valid sample ID: 1234-4567", visible=False, size=10, italic=True)
+        password_msg = ft.Text(value="Password must contain 1 Uppercase, 1 Lowercase and a Number!", visible=False, size=10, italic=True)
+        cnfrm_password_msg = ft.Text(value="Password and Password (Confirm) must be the same", visible=False, size=10, italic=True)
+
         email_field = ft.TextField(
-            label="Email", suffix_text="@gmail.com", border_width="1")
+            label="Email", suffix_text="@gmail.com", border_width="1", on_change=handle_email_change)
         fname_field = ft.TextField(
-            label="Fullname", border_width="1")
+            label="Fullname", border_width="1", on_change=handle_fname_change)
         s_id_field = ft.TextField(
-            label="Student ID", suffix_text="Ex. 2020-2110", border_width="1")
+            label="Student ID", suffix_text="Ex. 2020-2110", border_width="1", on_change=handle_s_id_change)
         institute_dropdown = ft.Dropdown(
             label="Institute",
             width=1000,
@@ -124,12 +226,13 @@ class Signup(ft.View):
             label="Program",
             width=1000,
             border_width="1",
+            on_change=handle_program_dropdown,
             tooltip="Choose your Program",
         )
         password_field = ft.TextField(label="Password", password="True", can_reveal_password=True,
-                                      border_width="1")
+                                      border_width="1", on_change=handle_password_change)
         cnfrm_password_field = ft.TextField(label="Password (Confirm)", password="True", can_reveal_password=True,
-                                            border_width="1")
+                                            border_width="1", on_change=handle_cnfrm_password_change)
         button = ft.FilledButton(text="SIGNUP", on_click=handle_signup,
                                  width="500", height="40")
         pr = ft.ProgressRing(width=32, height=32,
@@ -155,12 +258,17 @@ class Signup(ft.View):
                             ft.Text(value="Sign Up",
                                     weight=ft.FontWeight.BOLD, size=30),
                             email_field,
+                            email_msg,
                             fname_field,
+                            fname_msg,
                             s_id_field,
+                            s_id_msg,
                             institute_dropdown,
                             program_dropdown,
                             password_field,
+                            password_msg,
                             cnfrm_password_field,
+                            cnfrm_password_msg,
                         ]
                     ),
                     button,

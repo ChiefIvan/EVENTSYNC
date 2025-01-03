@@ -8,7 +8,7 @@ def validate_entries(entries):
         if len(value) == 0:
             return {"msg": f"Don't leave the {key.capitalize()} input empty!"}
 
-    is_email_format_valid = validate_email_format(entries["uname"])
+    is_email_format_valid = validate_email_format(entries["email"])
     if is_email_format_valid is not None:
         return is_email_format_valid
 

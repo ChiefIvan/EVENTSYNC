@@ -1,14 +1,46 @@
 from flask import Blueprint, request, jsonify
+from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from datetime import datetime
 
 from . import db
-from .models import Event
+from .models import Event, User
 
 
 views = Blueprint("views", __name__)
 
+@views.route("/get_privilege", methods=["GET"])
+@jwt_required()
+def get_user_privilege():
+    current_user = get_jwt_identity()
 
-@views.route("add_event", methods=["POST"])
+    query = User.query.filter_by(id=current_user)
+    user = query.first()
+    
+    return jsonify({
+        "privilege": user.privilege
+    })
+
+@views.route("/get_user_info", methods=["GET"])
+@jwt_required()
+def get_user_info():
+    current_user = get_jwt_identity()
+    query = User.query.filter_by(id=current_user)
+    user = query.first()
+
+    return jsonify({
+        "email": user.email,
+        "full_name": user.full_name,
+        "privilege": user.privilege,
+        "institute": user.institute,
+        "program": user.program,
+        "code": user.code,
+    })
+    
+    
+
+
+@views.route("/add_event", methods=["POST"])
+@jwt_required()
 def add_event():
     data = request.json
 
@@ -26,7 +58,8 @@ def add_event():
     return jsonify(data)
 
 
-@views.route("get_all_event", methods=["GET"])
+@views.route("/get_all_event", methods=["GET"])
+@jwt_required()
 def get_all_event():
     events = Event.query.all()
 

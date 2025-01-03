@@ -3,9 +3,11 @@ from flask_jwt_extended import create_access_token
 
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import URLSafeTimedSerializer
+from uuid import uuid4
+from random import choices
 
 from . import db, app
-from .models import User, Resend
+from .models import User, Otp
 from .shared.smt import Smt
 from .shared.validator import validate_entries
 
@@ -37,7 +39,7 @@ def login():
 
     token = create_access_token(identity=is_user_exist)
 
-    return jsonify({"token": token})
+    return jsonify({"token": token, "privilege": is_user_exist.privilege})
 
 
 @auth.route("/signup", methods=["POST"])
@@ -48,7 +50,7 @@ def signup():
     if is_valid is not None:
         return jsonify(is_valid), 400
 
-    query = User.query.filter_by(email=data["uname"])
+    query = User.query.filter_by(email=data["email"])
     is_user_exist = query.first()
 
     if is_user_exist:
@@ -56,68 +58,58 @@ def signup():
             {"msg": "Email already exist!, please try another one."}
         ), 400
 
-    # smt_check, error_code = Smt(endpoint="auth.email_verification",
-    #                             email=data["uname"], name=data["fname"]).send()
-
-    # if isinstance(smt_check, dict):
-    #     return jsonify(smt_check), error_code
-
     new_user = User(
-        email=data["uname"],
+        email=data["email"],
         full_name=data["fname"],
         privilege="0",
         institute=data["i_drp"],
         program=data["p_drp"],
-        is_confirmed=False,
+        code=str(uuid4()),
+        is_confirmed=False, 
         psw=generate_password_hash(data["psw"], method="pbkdf2:sha256")
     )
 
     db.session.add(new_user)
     db.session.commit()
 
+    pin = choices(["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"], k=6)
+
+    smt_check, error_code = Smt(
+        email=data["email"], 
+        name=data["fname"],
+        pin="".join(pin)).send()
+
+    if isinstance(smt_check, dict):
+        return jsonify(smt_check), error_code
+
+    user = User.query.filter_by(email=data["email"]).first()
+    new_pin = Otp(pin="".join(pin), user_id=user.id)
+
+    db.session.add(new_pin)
+    db.session.commit()
+
     return jsonify({"msg": "success"})
 
 
-@auth.route("/verified/<token>", methods=["GET"])
-def email_verification(token):
-    try:
-        serializer = URLSafeTimedSerializer(app.config["SECRET_KEY"])
-        decoded_data = serializer.loads(
-            token, salt=app.config["SECURITY_PASSWORD_SALT"], max_age=3600)
-    except Exception:
-        return render_template("message.html",
-                               content={
-                                   "title": "DOCUTRACKER | Email Verification",
-                                   "content": "The confirmation link has expired, or Invalid",
-                                   "color": "red"
-                               }), 400
+@auth.route("/request_otp", methods=["POST"])
+def otp():
+    data = request.json
 
-    is_token_exist = Resend.query.filter_by(token=token).first()
-    if not is_token_exist:
-        return render_template("message.html",
-                               content={
-                                   "title": "DOCUTRACKER | Reset Password",
-                                   "content": "You do not have the permission to access this page!",
-                                   "color": "red"
-                               }), 403
+    user = User.query.filter_by(email=data["email"]).first()
+    is_otp_exist = Otp.query.filter_by(user_id=user.id).first()
 
-    user = User.query.filter_by(email=decoded_data)
-    is_user_exist = user.first()
+    if not is_otp_exist:
+        return jsonify(
+            {"msg": "Incorrect pin!."}
+        ), 400
 
-    if is_user_exist.confirmed:
-        return render_template("message.html",
-                               content={
-                                   "title": "DOCUTRACKER | Email Verification",
-                                   "content": "Email Already confirmed!",
-                                   "color": "green"
-                               })
-
-    is_user_exist.is_confirmed = True
+    user.is_confirmed = True
     db.session.commit()
 
-    return render_template("message.html",
-                           content={
-                               "title": "DOCUTRACKER | Email Verification",
-                               "content": "Email confirmed!",
-                               "color": "green"
-                           })
+    token = create_access_token(identity=user)
+
+    return jsonify({
+        "token": token 
+    })
+
+    

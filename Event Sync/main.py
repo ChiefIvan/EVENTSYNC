@@ -2,8 +2,9 @@ import flet as ft
 
 from components.login import Login
 from components.signup import Signup
-from components.container import Container
-from components.scan import Scan
+from components.admin import Admin
+from components.user import User
+from components.otp import Otp
 
 
 def main(page: ft.Page):
@@ -28,20 +29,26 @@ def main(page: ft.Page):
                 Login(page)
             )
 
+        if page.route == "/otp":
+            page.views.append(
+                Otp(page)
+        )
+
         if page.route == "/signup":
             page.views.append(
                 Signup(page)
             )
 
-        if page.route == "/container":
+        if page.route == "/admin":
             page.views.append(
-                Container(page)
+                Admin(page)
             )
 
-        if page.route == "/scan":
+        if page.route == "/user":
             page.views.append(
-                Scan(page)
+                User(page)
             )
+
         page.update()
 
     def view_pop(e):

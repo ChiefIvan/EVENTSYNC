@@ -4,29 +4,19 @@
     <title>Email Confirmation</title>
   </head>
   <body>
-    <h2>Welcome, {{ data["name"] }}!</h2>
+    <h2>Greetings, {{ data["name"] }}!</h2>
     <p>
-      Thank you for using EventSync!. Please click the button below to confirm
-      your email address:
+      Thank you for using EventSync!. Here is your pin to confirm
+      your Authentication:
     </p>
-    <p>
-      <a href="{{ data[url] }}">
-        <button
-          style="
-            width: 8rem;
-            height: 2.5rem;
-            border: none;
-            color: white;
-            background-color: orange;
-            cursor: pointer;
-            border-radius: 5px;
-            font-weight: bold;
-          "
-        >
-          Verify
-        </button>
-      </a>
-    </p>
+    <h1
+      style="
+        font-weight: bold;
+        font-style: italic;
+      "
+    >
+      {{ data["pin"] }}
+    <h1/>
     <p>Thanks!</p>
   </body>
 </html>

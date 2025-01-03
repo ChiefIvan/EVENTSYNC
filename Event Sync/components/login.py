@@ -1,6 +1,6 @@
 import flet as ft
 
-from requests import post, RequestException
+from requests import post, get, RequestException
 
 
 class Login(ft.View):
@@ -11,9 +11,30 @@ class Login(ft.View):
         self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
         self.vertical_alignment = ft.MainAxisAlignment.CENTER
         self.spacing = 50
+        self.addr = "http://127.0.0.1:5000"
+        self.token = self.page.client_storage.get("token")
 
-        if self.page.client_storage.get("token"):
-            self.page.go("/container")
+        if self.token:
+            try:
+                request = get(
+                    f"{self.addr}/views/get_privilege",
+                    headers={
+                        "Authorization": f"Bearer {self.token}"
+                    }    
+                )
+
+                request.raise_for_status()
+
+                data = request.json()
+                print(data["privilege"])
+
+                if int(data["privilege"]) == 1:
+                    self.page.go("/admin")
+                else:
+                    self.page.go("/user")
+
+            except RequestException as err:
+                ...
 
         def handle_input(event):
             email_field.border_color = None
@@ -45,15 +66,17 @@ class Login(ft.View):
 
                 self.update()
 
-                response = post("http://127.0.0.1:5000/auth/login",
+                request = post(f"{self.addr}/auth/login",
                                 json={
                                     "email": email_field.value,
                                     "psw": password_field.value
                                 })
 
-                data = response.json()
+                request.raise_for_status()
+                
+                data = request.json()
 
-                if not response.ok:
+                if not request.ok:
                     self.page.snack_bar = ft.SnackBar(content=ft.Text(
                         value=data["msg"]),
                         action="Okay",
@@ -64,10 +87,14 @@ class Login(ft.View):
 
                     return
 
-                response.raise_for_status()
 
                 self.page.client_storage.set("token", data["token"])
-                self.page.go("/container")
+                print(data["privilege"])
+                
+                if int(data["privilege"]) == 1:
+                    self.page.go("/admin")
+                else:
+                    self.page.go("/user")
 
             except RequestException as err:
                 self.page.snack_bar = ft.SnackBar(content=ft.Text(
