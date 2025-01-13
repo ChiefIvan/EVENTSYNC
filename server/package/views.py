@@ -3,7 +3,7 @@ from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 from datetime import datetime
 
 from . import db
-from .models import Event, User
+from .models import Event, User, Revoked
 
 
 views = Blueprint("views", __name__)
@@ -18,7 +18,7 @@ def get_user_privilege():
     
     return jsonify({
         "privilege": user.privilege
-    })
+    }), 200
 
 @views.route("/get_user_info", methods=["GET"])
 @jwt_required()
@@ -34,7 +34,7 @@ def get_user_info():
         "institute": user.institute,
         "program": user.program,
         "code": user.code,
-    })
+    }), 200
     
     
 
@@ -55,7 +55,7 @@ def add_event():
     db.session.add(new_event)
     db.session.commit()
 
-    return jsonify(data)
+    return jsonify(data), 200
 
 
 @views.route("/get_all_event", methods=["GET"])
@@ -72,4 +72,14 @@ def get_all_event():
             "event_start_time": event.start_time,
             "event_end_time": event.end_time,
         } for event in events
-    ])
+    ]), 200
+    
+@views.route("/logout", methods=["GET"])
+@jwt_required()
+def logout():
+    jti = get_jwt()["jti"]
+    now = datetime.now()
+    revoked_token = Revoked(jti=jti, revoked_at=now)
+    db.session.add(revoked_token)
+    db.session.commit()
+    return jsonify({}), 200

@@ -3,7 +3,6 @@ from flask_jwt_extended import create_access_token
 
 from werkzeug.security import generate_password_hash, check_password_hash
 from itsdangerous import URLSafeTimedSerializer
-from uuid import uuid4
 from random import choices
 
 from . import db, app
@@ -64,7 +63,7 @@ def signup():
         privilege="0",
         institute=data["i_drp"],
         program=data["p_drp"],
-        code=str(uuid4()),
+        code=str(choices(["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"], k=12)),
         is_confirmed=False, 
         psw=generate_password_hash(data["psw"], method="pbkdf2:sha256")
     )

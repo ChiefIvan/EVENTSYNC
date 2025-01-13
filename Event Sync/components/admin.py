@@ -3,7 +3,6 @@ import numpy as np
 
 from datetime import datetime
 from requests import post, get, delete, RequestException
-from cv2 import (VideoCapture, cvtColor, QRCodeDetector, polylines, destroyAllWindows, imshow, waitKey, COLOR_BGR2GRAY, LINE_AA)
 
 class Admin(ft.View):
     def __init__(self, page):
@@ -20,29 +19,12 @@ class Admin(ft.View):
         def handle_item_click(event_id, event_name):
             self.page.client_storage.set("event_id", event_id)
             self.page.client_storage.set("event_name", event_name)
-
-            cam = VideoCapture(0)
-            while True:
-                ret, frame = cam.read()
-                if not ret:
-                    break
-
-                gray = cvtColor(frame, COLOR_BGR2GRAY)
-                detector = QRCodeDetector()
-                data, points, _ = detector.detectAndDecode(gray)
-
-                if data:
-                    polylines(frame, [np.int32(points)], True, (255, 0, 0), 2, LINE_AA)
-
-                    print(f"QR Code: {data}")
-                    
-                    cam.release()
-                    destroyAllWindows()
-                    break
-
-                imshow(event_name, frame)
-                if waitKey(1) & 0xFF == ord("q"):
-                    break
+            
+            self.page.launch_url(
+                url="jocular-figolla-efd785.netlify.app/?token=1234567890",
+                web_popup_window=True
+            )
+            
 
         def handle_mount():
             try:
@@ -73,14 +55,14 @@ class Admin(ft.View):
                                 ft.Text(value=event["event_name"],
                                         weight=ft.FontWeight.BOLD, size=20),
                                 ft.Text(value=event["event_description"],
-                                        color=ft.Colors.GREY_800, selectable=True),
+                                        color=ft.Colors.GREY_500),
                                 ft.Row(
                                     alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                                     controls=[
                                         ft.Text(value=event["event_date"],
-                                                italic=True, color=ft.Colors.GREY_600, size=10),
+                                                italic=True, color=ft.Colors.GREY_300, size=10),
                                         ft.Text(value=f"{event['event_start_time']} - {event['event_end_time']}",
-                                                italic=True, color=ft.Colors.GREY_600, size=10)
+                                                italic=True, color=ft.Colors.GREY_300, size=10)
                                     ]
                                 ),
                                 ft.Row(
@@ -113,14 +95,42 @@ class Admin(ft.View):
                 # pr.visible = False
                 ...
 
+        def handle_logout(e):
+            try:
+                # pr.visible = True
+                self.page.snack_bar = ft.SnackBar(content=ft.Text(
+                    value="Logging Out... Please wait!"),
+                    action="Okay",
+                )
+
+                self.page.snack_bar.open = True
+                self.page.update()
+
+                response = get(
+                    f"{self.addr}/views/logout",
+                    headers={
+                        "Authorization": f"Bearer {self.TOKEN}"
+                    }
+                )
+
+                response.raise_for_status()
+
+                self.page.client_storage.remove("token")
+                self.page.go("/login")
+                
+            except RequestException as err:
+                self.page.snack_bar = ft.SnackBar(content=ft.Text(
+                    value="Server Unreachable, try again!"),
+                    action="Okay",
+                )
+
+                self.page.snack_bar.open = True
+                self.page.update()
+
         def update_view(is_called_by_function=False):
             if self.index == 0:
                 self.controls = [
-                    ft.Row(
-                        controls=[
-                            lv
-                        ]
-                    )
+                    lv
                 ]
 
                 if is_called_by_function:
@@ -128,7 +138,7 @@ class Admin(ft.View):
 
             else:
                 self.controls = [
-                    ft.Row(
+                    ft.Column(
                         controls=[
                             ft.Text(value="Hello from Users")
                         ]
@@ -160,7 +170,6 @@ class Admin(ft.View):
 
             text_control = column.controls[0]
 
-            print(text_control.value)
             # try:
             #     request = delete(
             #         "http://127.0.0.1:5000/views/delete_event", json={})
@@ -172,14 +181,19 @@ class Admin(ft.View):
             try:
                 # pr.visible = True
 
-                response = post(f"{self.addr}/views/add_event",
-                                json={
-                                    "event_name": event_title.value,
-                                    "event_description": description.value,
-                                    "event_date": date_picker.value.strftime("%B %d, %Y"),
-                                    "event_start_time": start_time_selection.value.strftime("%I:%M %p"),
-                                    "event_end_time": end_time_selection.value.strftime("%I:%M %p"),
-                                })
+                response = post(
+                    f"{self.addr}/views/add_event",
+                    json={
+                        "event_name": event_title.value,
+                        "event_description": description.value,
+                        "event_date": date_picker.value.strftime("%B %d, %Y"),
+                        "event_start_time": start_time_selection.value.strftime("%I:%M %p"),
+                        "event_end_time": end_time_selection.value.strftime("%I:%M %p"),
+                    },
+                    headers={
+                        "Authorization": f"Bearer {self.TOKEN}"
+                    }
+                )
 
                 data = response.json()
 
@@ -189,6 +203,7 @@ class Admin(ft.View):
                     return
 
                 handle_mount()
+                self.update()
 
             except RequestException as err:
                 ...
@@ -238,27 +253,46 @@ class Admin(ft.View):
                 ft.PopupMenuButton(
                     icon_color=ft.Colors.GREY_700,
                     items=[
-                        ft.PopupMenuItem(content=ft.Row(
-                            alignment=ft.MainAxisAlignment.CENTER,
-                            vertical_alignment=ft.CrossAxisAlignment.CENTER,
-                            controls=[
-                                ft.Image(
-                                    src="../assets/img/user-icon.webp", width=250, height=250)
-                            ],
-                        ),
-                            disabled=True
-                        ),
-                        ft.PopupMenuItem(content=ft.Column(
-                            horizontal_alignment=ft.CrossAxisAlignment.CENTER,
-                            width=500,
-                            controls=[
-                                ft.Text(value="eventsync.admin@dorsu.edu.ph",
-                                        color=ft.Colors.GREY_800),
-                                ft.Text(value="Hello Admin!",
-                                        weight=ft.FontWeight.BOLD, size=20, color=ft.Colors.GREY_800)
-                            ]
-                        ),
+                        ft.PopupMenuItem(
                             disabled=True,
+                            content=ft.Row(
+                                alignment=ft.MainAxisAlignment.CENTER,
+                                vertical_alignment=ft.CrossAxisAlignment.CENTER,
+                                controls=[
+                                    ft.Image(
+                                        src="../assets/img/user-icon.webp", width=250, height=250)
+                                ],
+                            ),
+                        ),
+                        ft.PopupMenuItem(
+                            disabled=True,
+                            content=ft.Column(
+                                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                                width=500,
+                                controls=[
+                                    ft.Column(
+                                        height=100,
+                                        alignment=ft.MainAxisAlignment.CENTER,
+                                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                                        controls=[
+                                            ft.Text(value="eventsync.admin@dorsu.edu.ph",
+                                            color=ft.Colors.GREY_300),
+                                            ft.Text(value="Hello Admin!",
+                                            weight=ft.FontWeight.BOLD, size=20, color=ft.Colors.GREY_300)
+                                        ]
+                                    )
+                                ]
+                            ),
+                        ),
+                        ft.PopupMenuItem(
+                            disabled=True,
+                            content=ft.Column(
+                                alignment=ft.MainAxisAlignment.CENTER,
+                                horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                                controls=[
+                                    ft.ElevatedButton("Logout", width=500, on_click=handle_logout),
+                                ]
+                            ),
                         ),
                     ]
                 ),

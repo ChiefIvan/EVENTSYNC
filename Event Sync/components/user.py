@@ -34,10 +34,10 @@ class User(ft.View):
 
                     if request.ok:
                         name.value = data["full_name"]
-                        data = EAN13('123456789056', writer=ImageWriter())
-                        io = BytesIO()  # Create an instance of BytesIO
-                        data.write(io)   # Write to the BytesIO instance
-                        barcode_base64 = b64encode(io.getvalue()).decode('utf-8') # Use io.getvalue()
+                        data = EAN13(data["code"], writer=ImageWriter())
+                        io = BytesIO()
+                        data.write(io)
+                        barcode_base64 = b64encode(io.getvalue()).decode('utf-8')
                         code.src_base64 = barcode_base64
 
 
