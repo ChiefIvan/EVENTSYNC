@@ -152,7 +152,7 @@ class Signup(ft.View):
 
                 self.update()
 
-                response = post("http://127.0.0.1:5000/auth/signup",
+                request = post("http://127.0.0.1:5000/auth/signup",
                                 json={
                                     "email": f"{email_field.value}@gmail.com",
                                     "fname": fname_field.value,
@@ -163,7 +163,18 @@ class Signup(ft.View):
                                     "pswcfrm": cnfrm_password_field.value
                                 })
 
-                response.raise_for_status()
+                response = request.json()
+
+                if not response.ok:
+                    self.page.snack_bar = ft.SnackBar(content=ft.Text(
+                        value=response["msg"]),
+                        action="Okay",
+                    )
+
+                    self.page.snack_bar.open = True
+                    self.page.update()
+
+                    return
 
                 self.page.snack_bar = ft.SnackBar(content=ft.Text(
                     value="Please check your email for confirmation"),

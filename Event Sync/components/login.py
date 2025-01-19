@@ -11,7 +11,7 @@ class Login(ft.View):
         self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
         self.vertical_alignment = ft.MainAxisAlignment.CENTER
         self.spacing = 50
-        self.addr = "http://127.0.0.1:5000"
+        self.addr = "https://chiefban.pythonanywhere.com/"
         self.token = self.page.client_storage.get("token")
 
         if self.token:
@@ -26,15 +26,21 @@ class Login(ft.View):
                 request.raise_for_status()
 
                 data = request.json()
-                print(data["privilege"])
 
                 if int(data["privilege"]) == 1:
                     self.page.go("/admin")
-                else:
-                    self.page.go("/user")
+                    return 
+                
+                self.page.go("/user")
 
             except RequestException as err:
-                ...
+                self.page.snack_bar = ft.SnackBar(content=ft.Text(
+                    value="Server Unreachable, try again!"),
+                    action="Okay",
+                )
+
+                self.page.snack_bar.open = True
+                self.page.update()
 
         def handle_input(event):
             email_field.border_color = None
@@ -71,10 +77,10 @@ class Login(ft.View):
                                     "email": email_field.value,
                                     "psw": password_field.value
                                 })
-
-                request.raise_for_status()
                 
                 data = request.json()
+
+                print(data)
 
                 if not request.ok:
                     self.page.snack_bar = ft.SnackBar(content=ft.Text(
@@ -93,8 +99,9 @@ class Login(ft.View):
                 
                 if int(data["privilege"]) == 1:
                     self.page.go("/admin")
-                else:
-                    self.page.go("/user")
+                    return 
+                
+                self.page.go("/user")
 
             except RequestException as err:
                 self.page.snack_bar = ft.SnackBar(content=ft.Text(

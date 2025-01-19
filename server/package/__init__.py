@@ -2,6 +2,7 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_jwt_extended import JWTManager
 from flask_mail import Mail
+from flask_cors import CORS
 
 from os import getenv
 from dotenv import load_dotenv
@@ -15,6 +16,15 @@ app = Flask(__name__)
 db = SQLAlchemy()
 jwt = JWTManager()
 mail = Mail()
+
+CORS(
+    app,
+    resources={
+        r"/*": {
+            "origins": getenv("ADDR")
+        }
+    }
+)
 
 app.config["SECRET_KEY"] = getenv("SK")
 app.config["JWT_SECRET_KEY"] = getenv("SK")

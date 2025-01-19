@@ -1,3 +1,4 @@
 flet
 requests
-opencv-python
+python-barcode
+pyperclip==1.9.0

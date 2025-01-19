@@ -23,7 +23,6 @@ class Otp(ft.View):
                             }
                         )
 
-                request.raise_for_status()
                 data = request.json()
 
                 if not request.ok:
@@ -38,7 +37,6 @@ class Otp(ft.View):
                     return
                 
                 self.page.client_storage.set("token", data["token"])
-                
                 self.page.go("/login")
 
             except RequestException as err:

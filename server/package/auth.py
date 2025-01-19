@@ -1,11 +1,10 @@
-from flask import Blueprint, request, jsonify, render_template
+from flask import Blueprint, request, jsonify
 from flask_jwt_extended import create_access_token
 
 from werkzeug.security import generate_password_hash, check_password_hash
-from itsdangerous import URLSafeTimedSerializer
 from random import choices
 
-from . import db, app
+from . import db
 from .models import User, Otp
 from .shared.smt import Smt
 from .shared.validator import validate_entries
@@ -56,6 +55,18 @@ def signup():
         return jsonify(
             {"msg": "Email already exist!, please try another one."}
         ), 400
+    
+    users = User.query.all()
+
+    for user in users:
+        barcode = "".join(choices(["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"], k=12))
+
+        if user.code == barcode:
+            continue
+        
+        break
+
+    print(barcode)
 
     new_user = User(
         email=data["email"],
@@ -63,7 +74,7 @@ def signup():
         privilege="0",
         institute=data["i_drp"],
         program=data["p_drp"],
-        code=str(choices(["1", "2", "3", "4", "5", "6", "7", "8", "9", "0"], k=12)),
+        code=barcode,
         is_confirmed=False, 
         psw=generate_password_hash(data["psw"], method="pbkdf2:sha256")
     )
@@ -94,7 +105,7 @@ def signup():
 def otp():
     data = request.json
 
-    user = User.query.filter_by(email=data["email"]).first()
+    user = User.query.filter_by(email=f"{data['email']}@gmail.com").first()
     is_otp_exist = Otp.query.filter_by(user_id=user.id).first()
 
     if not is_otp_exist:

@@ -1,6 +1,7 @@
 import flet as ft
-import numpy as np
 
+from pyshorteners import Shortener
+from pyperclip import copy
 from datetime import datetime
 from requests import post, get, delete, RequestException
 
@@ -10,25 +11,34 @@ class Admin(ft.View):
 
         self.page = page
         self.index = 0
-        self.addr = "http://127.0.0.1:5000"
+        self.addr = "https://chiefban.pythonanywhere.com/"
         self.TOKEN = self.page.client_storage.get("token")
 
         if self.TOKEN is None:
             self.page.go("/login")
 
         def handle_item_click(event_id, event_name):
-            self.page.client_storage.set("event_id", event_id)
-            self.page.client_storage.set("event_name", event_name)
-            
-            self.page.launch_url(
-                url="jocular-figolla-efd785.netlify.app/?token=1234567890",
-                web_popup_window=True
+            shortener = Shortener()
+            instance = shortener.tinyurl
+            copy(instance.short(f"http://localhost:5173/?id={event_id}&name={event_name}&token={self.TOKEN}"))
+
+            self.page.snack_bar = ft.SnackBar(content=ft.Text(
+                    value="Scanner link copied to clipboard"),
+                    action="Okay",
             )
+
+            self.page.snack_bar.open = True
+            self.page.update()
+
+        def handle_view_user(event_id):
+            self.page.client_storage.set("event_id", event_id)
+            self.page.go("/view_reg_users")
             
 
         def handle_mount():
             try:
-                # pr.visible = True
+                pr.visible = True
+                self.page.update()
 
                 response = get(
                     f"{self.addr}/views/get_all_event",
@@ -40,60 +50,82 @@ class Admin(ft.View):
                 events = response.json()
 
                 if not response.ok:
-                    response.raise_for_status()
-                    self.update()
-                    return
-
-                for event in events:
-                    lv.controls.append(
-                        ft.Container(
-                        on_click=lambda e, event=event: handle_item_click(event["id"], event["event_name"]),
-                        ink=True,
-                        padding=20, 
-                        content=ft.Column(
-                            controls=[
-                                ft.Text(value=event["event_name"],
-                                        weight=ft.FontWeight.BOLD, size=20),
-                                ft.Text(value=event["event_description"],
-                                        color=ft.Colors.GREY_500),
-                                ft.Row(
-                                    alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                                    controls=[
-                                        ft.Text(value=event["event_date"],
-                                                italic=True, color=ft.Colors.GREY_300, size=10),
-                                        ft.Text(value=f"{event['event_start_time']} - {event['event_end_time']}",
-                                                italic=True, color=ft.Colors.GREY_300, size=10)
-                                    ]
-                                ),
-                                ft.Row(
-                                    alignment=ft.MainAxisAlignment.END,
-                                    spacing=0,
-                                    controls=[
-                                        ft.IconButton(
-                                            icon=ft.Icons.DELETE_FOREVER_ROUNDED,
-                                            icon_color="red",
-                                            icon_size=25,
-                                            tooltip="Delete record",
-                                            on_click=handle_event_delete,
-                                        ),
-                                        ft.IconButton(
-                                            icon=ft.Icons.EDIT_DOCUMENT,
-                                            icon_color="#52a3ff",
-                                            icon_size=22,
-                                            tooltip="Edit record",
-                                        ),
-                                    ]
-                                )
-                            ]
-                        )
-                        )
+                    self.page.snack_bar = ft.SnackBar(content=ft.Text(
+                        value="Something went wrong! try to refresh."),
+                        action="Okay",
                     )
 
+                    self.page.snack_bar.open = True
+                    self.page.update()
+
+                    return
+                if len(events) != 0:
+                    lv.visible = True
+                    self.page.update()
+
+                    for event in events:
+                        lv.controls.append(
+                            ft.Container(
+                                on_click=lambda e, event=event: handle_view_user(event["id"]),
+                                ink=True,
+                                padding=20, 
+                                content=ft.Column(
+                                    controls=[
+                                        ft.Text(value=event["event_name"],
+                                                weight=ft.FontWeight.BOLD, size=20),
+                                        ft.Text(value=event["event_description"],
+                                                color=ft.Colors.GREY_500),
+                                        ft.Row(
+                                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                                            controls=[
+                                                ft.Text(value=event["event_date"],
+                                                        italic=True, color=ft.Colors.GREY_300, size=10),
+                                                ft.Text(value=f"{event['event_start_time']} - {event['event_end_time']}",
+                                                        italic=True, color=ft.Colors.GREY_300, size=10)
+                                            ]
+                                        ),
+                                        ft.Row(
+                                            alignment=ft.MainAxisAlignment.END,
+                                            spacing=0,
+                                            controls=[
+                                                ft.IconButton(
+                                                    icon=ft.Icons.DELETE_FOREVER_ROUNDED,
+                                                    icon_color="red",
+                                                    icon_size=25,
+                                                    tooltip="Delete record",
+                                                    on_click=handle_event_delete,
+                                                ),
+                                                ft.IconButton(
+                                                    icon=ft.Icons.COPY_ALL_ROUNDED,
+                                                    icon_color="#52a3ff",
+                                                    icon_size=22,
+                                                    tooltip="Copy Scanner Link",
+                                                    on_click=lambda _: handle_item_click(event["id"], event["event_name"])
+                                                ),
+                                                
+                                            ]
+                                        )
+                                    ]
+                                )
+                            )
+                        )
+
+                else:
+                    zero_count_msg.visible = True
+                    self.page.update()
+
+
             except RequestException as err:
-                ...
+                self.page.snack_bar = ft.SnackBar(content=ft.Text(
+                    value="Server Unreachable, try again!"),
+                    action="Okay",
+                )
+
+                self.page.snack_bar.open = True
+                self.page.update()
             finally:
-                # pr.visible = False
-                ...
+                pr.visible = False
+                self.page.update()
 
         def handle_logout(e):
             try:
@@ -106,14 +138,12 @@ class Admin(ft.View):
                 self.page.snack_bar.open = True
                 self.page.update()
 
-                response = get(
+                get(
                     f"{self.addr}/views/logout",
                     headers={
                         "Authorization": f"Bearer {self.TOKEN}"
                     }
                 )
-
-                response.raise_for_status()
 
                 self.page.client_storage.remove("token")
                 self.page.go("/login")
@@ -130,7 +160,14 @@ class Admin(ft.View):
         def update_view(is_called_by_function=False):
             if self.index == 0:
                 self.controls = [
-                    lv
+                    lv,
+                    ft.Column(
+                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                        controls=[
+                            zero_count_msg,
+                            pr
+                        ]
+                    )
                 ]
 
                 if is_called_by_function:
@@ -138,11 +175,7 @@ class Admin(ft.View):
 
             else:
                 self.controls = [
-                    ft.Column(
-                        controls=[
-                            ft.Text(value="Hello from Users")
-                        ]
-                    )
+                    # user_lv
                 ]
 
                 self.update()
@@ -179,7 +212,27 @@ class Admin(ft.View):
 
         def handle_add(e):
             try:
-                # pr.visible = True
+                if len(event_title.value > 50):
+                    self.page.snack_bar = ft.SnackBar(content=ft.Text(
+                        value="Event Title must not exceed 50 characters!"),
+                        action="Okay",
+                    )
+
+                    self.page.snack_bar.open = True
+                    self.page.update()
+                    
+                    return
+
+                if len(description.value > 1000):
+                    self.page.snack_bar = ft.SnackBar(content=ft.Text(
+                        value="Description must not exceed 1000 characters!"),
+                        action="Okay",
+                    )
+
+                    self.page.snack_bar.open = True
+                    self.page.update()
+
+                    return
 
                 response = post(
                     f"{self.addr}/views/add_event",
@@ -195,20 +248,30 @@ class Admin(ft.View):
                     }
                 )
 
-                data = response.json()
-
                 if not response.ok:
-                    response.raise_for_status()
-                    self.update()
+                    self.page.snack_bar = ft.SnackBar(content=ft.Text(
+                        value="Something went wrong! try to refresh."),
+                        action="Okay",
+                    )
+
+                    self.page.snack_bar.open = True
+                    self.page.update()
+
                     return
 
                 handle_mount()
                 self.update()
 
             except RequestException as err:
-                ...
+                self.page.snack_bar = ft.SnackBar(content=ft.Text(
+                    value="Server Unreachable, try again!"),
+                    action="Okay",
+                )
+
+                self.page.snack_bar.open = True
+                self.page.update()
+                
             finally:
-                # pr.visible = False
                 event_title.value = ""
                 description.value = ""
                 date_text.value = "Select Date"
@@ -229,6 +292,18 @@ class Admin(ft.View):
             selected_index=self.index,
             on_change=handle_nav_change,
             controls=[
+                ft.Row(
+                    controls=[
+                        ft.Image(
+                            src="icon.png",
+                            width=60,
+                            height=60,
+                            fit=ft.ImageFit.CONTAIN,
+                        ),
+                        ft.Text("Event Sync")
+                    ]
+                ),
+                ft.Divider(thickness=2),
                 ft.NavigationDrawerDestination(
                     label="Dashboard",
                     icon=ft.Icons.DASHBOARD_CUSTOMIZE_OUTLINED,
@@ -303,8 +378,14 @@ class Admin(ft.View):
             icon=ft.Icons.ADD, on_click=lambda _: self.page.open(modal), bgcolor="#52a3ff")
 
         lv = ft.ListView(
-            divider_thickness=1
+            divider_thickness=1,
+            visible=False
         )
+
+        pr = ft.ProgressRing(width=32, height=32,
+                             stroke_width=4, visible=False)
+        
+        zero_count_msg = ft.Text(value="No Event's Yet!", visible=False)
 
         event_title = ft.TextField(label="Event Title")
         description = ft.TextField(label="Description",
