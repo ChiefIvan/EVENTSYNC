@@ -5,7 +5,7 @@ class Students(ft.View):
     def __init__(self, page):
         super().__init__(route="/view_reg_users")
         self.page = page
-        self.addr = "http://127.0.0.1:5000"
+        self.addr = "https://chiefban.pythonanywhere.com/"
         self.TOKEN = self.page.client_storage.get("token")
 
         def handle_mount():
@@ -31,19 +31,27 @@ class Students(ft.View):
 
                     return
 
-                response = request.json()
+                data = request.json()
                 
-                if len(response) != 0:
-                    for user in response:
-                        lv.controls.append(
-                            ft.Row(
-                                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                                controls=[
-                                    ft.Text(user["full_name"]),
-                                    ft.Icon(name=ft.Icons.CHECK_OUTLINED),
-                                ]
-                            )
+                if len(data) == 0:
+                    return
+
+                lv.visible = True
+                zero_user_msg.visible = False
+                
+                for user in data:
+                    lv.controls.append(
+                        ft.Row(
+                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                            controls=[
+                                ft.Text(user["full_name"]),
+                                ft.Icon(name=ft.Icons.CHECK_OUTLINED),
+                            ]
                         )
+                    )
+
+                self.update()
+                
 
             except RequestException as err:
                 self.page.snack_bar = ft.SnackBar(content=ft.Text(
@@ -54,6 +62,9 @@ class Students(ft.View):
                 self.page.snack_bar.open = True
                 self.page.update()
 
+        def handle_generate(e):
+            ...
+
         self.appbar = ft.AppBar(
             leading=ft.IconButton(
                 ft.Icons.ARROW_BACK_OUTLINED, icon_color=ft.Colors.GREY_700, on_click=lambda _: self.page.go("/admin")),
@@ -62,9 +73,22 @@ class Students(ft.View):
             bgcolor="#52a3ff",
         )
 
-        lv = ft.ListView(divider_thickness=1)
+        self.floating_action_button = ft.FloatingActionButton(
+            icon=ft.Icons.DOWNLOAD_OUTLINED, on_click=handle_generate, bgcolor="#0a0033")
 
-        self.controls=[lv]
+
+        lv = ft.ListView(divider_thickness=1, visible=False)
+        zero_user_msg = ft.Text("No present students for this event!")
+
+        self.controls=[
+            lv, 
+            ft.Row(
+                alignment=ft.MainAxisAlignment.CENTER,
+                controls=[
+                    zero_user_msg
+                ]
+            )
+        ]
 
         handle_mount()
         

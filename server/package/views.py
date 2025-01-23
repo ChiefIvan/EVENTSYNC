@@ -1,13 +1,30 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
-from datetime import datetime
 
-from . import db
+from datetime import datetime
+from base64 import b64decode,b64encode
+from uuid import uuid4
+from io import BytesIO
+from PIL import Image
+from os import path
+
+from . import db, app
 from .models import Event, User, Revoked, user_event
 
 
 views = Blueprint("views", __name__)
 
+
+def handle_file(name):
+    _dir = f"{app.static_folder}\\img\\user\\{name}.webp"
+
+    if path.exists(_dir):
+        with open(f"{_dir}", "rb") as file:
+            img = file.read()
+
+        return b64encode(img).decode('utf-8')
+    
+    return None
 
 @views.route("/get_privilege", methods=["GET"])
 @jwt_required()
@@ -29,6 +46,7 @@ def get_user_info():
     user = query.first()
 
     return jsonify({
+        "img":  handle_file(user.img),
         "email": user.email,
         "full_name": user.full_name,
         "privilege": user.privilege,
@@ -46,6 +64,43 @@ def get_all_reg_users():
     return jsonify([{
         "full_name": user.full_name,
     } for user in registered_users])
+
+
+@views.route("/get_all_users", methods=["GET"])
+@jwt_required()
+def get_all_users():
+    users = User.query.all()
+    return jsonify([{
+        "img": handle_file(user.img),
+        "full_name": user.full_name,
+        "institute": user.institute,
+    } for user in users if user.full_name != "Admin"])
+
+
+@views.route("/upl_prf", methods=["POST"])
+@jwt_required()
+def upload_prf():
+    data = request.json
+    current_user = get_jwt_identity()
+
+    user = User.query.filter_by(id=current_user).first()
+
+    decoded_bytes = b64decode(data["img"])
+    image_file = BytesIO(decoded_bytes)
+
+    img = Image.open(image_file)
+    img = img.convert('RGB')
+
+    filename = str(uuid4()) if not user.img else user.img
+
+    if filename != user.img:
+        user.img = filename
+        db.session.commit()
+
+    img.save(f"{app.static_folder}\\img\\user\\{filename}.webp")
+
+
+    return jsonify({})
 
 
 @views.route("/add_event", methods=["POST"])

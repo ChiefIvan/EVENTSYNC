@@ -11,6 +11,7 @@ class Signup(ft.View):
         self.page = page
         self.horizontal_alignment = ft.CrossAxisAlignment.CENTER
         self.vertical_alignment = ft.MainAxisAlignment.CENTER
+        self.addr = "https://chiefban.pythonanywhere.com/"
         self.spacing = 50
         self.dropdownOpt = {
             "FCDSET": [
@@ -152,7 +153,7 @@ class Signup(ft.View):
 
                 self.update()
 
-                request = post("http://127.0.0.1:5000/auth/signup",
+                request = post(f"{self.addr}/auth/signup",
                                 json={
                                     "email": f"{email_field.value}@gmail.com",
                                     "fname": fname_field.value,
@@ -165,7 +166,7 @@ class Signup(ft.View):
 
                 response = request.json()
 
-                if not response.ok:
+                if not request.ok:
                     self.page.snack_bar = ft.SnackBar(content=ft.Text(
                         value=response["msg"]),
                         action="Okay",

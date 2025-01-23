@@ -4,6 +4,7 @@ from sqlalchemy.orm import relationship
 
 class User(db.Model):
     id = db.Column(db.Integer, primary_key=True)
+    img = db.Column(db.String(100), unique=True)
     email = db.Column(db.String(50), unique=True, nullable=False)
     full_name = db.Column(db.String(30))
     privilege = db.Column(db.String(1))

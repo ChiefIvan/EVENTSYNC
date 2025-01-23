@@ -1,9 +1,7 @@
 import flet as ft
 
-from pyshorteners import Shortener
-from pyperclip import copy
 from datetime import datetime
-from requests import post, get, delete, RequestException
+from requests import post, get, RequestException
 
 class Admin(ft.View):
     def __init__(self, page):
@@ -18,9 +16,32 @@ class Admin(ft.View):
             self.page.go("/login")
 
         def handle_item_click(event_id, event_name):
-            shortener = Shortener()
-            instance = shortener.tinyurl
-            copy(instance.short(f"http://localhost:5173/?id={event_id}&name={event_name}&token={self.TOKEN}"))
+            try:
+                request = post(
+                    "https://api.tinyurl.com/create",
+                    headers={
+                        "Authorization": "Bearer pQHnPuQimBNJONKbD1Th6I90r6wZem3HQJXZH7rEEZS1JGtylL6KcCMW5cRX",
+                        "Content-Type": "application/json",
+                    },
+                    json={
+                        "url": f"https://jocular-figolla-efd785.netlify.app/?id={event_id}&name={event_name}&token={self.TOKEN}",
+                        "domain": "tiny.one",
+                    }
+                )
+
+                data: dict = request.json()
+                data_body = data.get("data")
+                self.page.set_clipboard(data_body.get("tiny_url"))
+                self.page.update()
+
+            except RequestException as err:
+                self.page.snack_bar = ft.SnackBar(content=ft.Text(
+                    value="Server Unreachable, try again!"),
+                    action="Okay",
+                )
+
+                self.page.snack_bar.open = True
+                self.page.update()
 
             self.page.snack_bar = ft.SnackBar(content=ft.Text(
                     value="Scanner link copied to clipboard"),
@@ -61,6 +82,7 @@ class Admin(ft.View):
                     return
                 if len(events) != 0:
                     lv.visible = True
+                    zero_count_msg.visible = False
                     self.page.update()
 
                     for event in events:
@@ -159,10 +181,12 @@ class Admin(ft.View):
 
         def update_view(is_called_by_function=False):
             if self.index == 0:
+                self.floating_action_button.visible = True
+
                 self.controls = [
                     lv,
-                    ft.Column(
-                        horizontal_alignment=ft.CrossAxisAlignment.CENTER,
+                    ft.Row(
+                        alignment=ft.MainAxisAlignment.CENTER,
                         controls=[
                             zero_count_msg,
                             pr
@@ -170,15 +194,93 @@ class Admin(ft.View):
                     )
                 ]
 
+
                 if is_called_by_function:
-                    self.update()
+                    self.page.update()
 
             else:
+                self.floating_action_button.visible = False
+
                 self.controls = [
-                    # user_lv
+                    user_lv,
+                    ft.Row(
+                        alignment=ft.MainAxisAlignment.CENTER,
+                        controls=[
+                            zero_count_msg_user,
+                            user_pr
+                        ]
+                    )
                 ]
 
                 self.update()
+                
+                user_lv.clean()
+                self.update()
+
+                try:
+                    response = get(
+                        f"{self.addr}/views/get_all_users",
+                        headers={
+                            "Authorization": f"Bearer {self.TOKEN}"
+                        }
+                    )
+
+                    if not response.ok:
+                        self.page.snack_bar = ft.SnackBar(content=ft.Text(
+                            value="Something went wrong! try to refresh."),
+                            action="Okay",
+                        )
+
+                        self.page.snack_bar.open = True
+                        self.page.update()
+
+                        return
+                    
+                    users = response.json()
+
+                    if len(users) != 0:
+                        user_lv.visible = True
+                        zero_count_msg_user.visible = False
+                        self.update()
+
+                        for user in users:
+
+
+                            user_lv.controls.append(
+                                ft.Container(
+                                    on_click=lambda e, user=user: print(user),
+                                    ink=True,
+                                    padding=10,
+                                    content=ft.Row(
+                                        controls=[
+                                            ft.Image(src_base64=user["img"], src="../assets/img/user-icon.webp", width=70, height=70, border_radius=ft.border_radius.all(1000)),
+                                            ft.Text(user["full_name"])
+                                        ]
+                                    )
+                                )
+                            )
+
+                    else:
+                        zero_count_msg_user.visible = True
+
+                    self.update()
+
+
+
+                except RequestException as err:
+                    self.page.snack_bar = ft.SnackBar(content=ft.Text(
+                        value="Server Unreachable, try again!"),
+                        action="Okay",
+                    )
+
+                    self.page.snack_bar.open = True
+                    self.page.update()
+                finally:
+                    # pr.visible = False
+                    ...
+                
+
+
 
         def handle_nav_change(e):
             self.index = e.control.selected_index
@@ -212,7 +314,7 @@ class Admin(ft.View):
 
         def handle_add(e):
             try:
-                if len(event_title.value > 50):
+                if len(event_title.value) > 50:
                     self.page.snack_bar = ft.SnackBar(content=ft.Text(
                         value="Event Title must not exceed 50 characters!"),
                         action="Okay",
@@ -223,7 +325,7 @@ class Admin(ft.View):
                     
                     return
 
-                if len(description.value > 1000):
+                if len(description.value) > 1000:
                     self.page.snack_bar = ft.SnackBar(content=ft.Text(
                         value="Description must not exceed 1000 characters!"),
                         action="Okay",
@@ -259,7 +361,9 @@ class Admin(ft.View):
 
                     return
 
+                lv.clean()
                 handle_mount()
+                self.page.close(modal)
                 self.update()
 
             except RequestException as err:
@@ -311,7 +415,7 @@ class Admin(ft.View):
                 ),
                 ft.NavigationDrawerDestination(
                     icon=ft.Icon(ft.Icons.PEOPLE_ALT_OUTLINED),
-                    label="Users",
+                    label="Students",
                     selected_icon=ft.Icons.PEOPLE_ALT,
                 ),
             ],
@@ -382,10 +486,19 @@ class Admin(ft.View):
             visible=False
         )
 
+        user_lv = ft.ListView(
+            divider_thickness=2,
+            visible=False
+        )
+
         pr = ft.ProgressRing(width=32, height=32,
+                             stroke_width=4, visible=False)
+
+        user_pr = ft.ProgressRing(width=32, height=32,
                              stroke_width=4, visible=False)
         
         zero_count_msg = ft.Text(value="No Event's Yet!", visible=False)
+        zero_count_msg_user = ft.Text(value="No User's Yet!", visible=False)
 
         event_title = ft.TextField(label="Event Title")
         description = ft.TextField(label="Description",
@@ -396,9 +509,9 @@ class Admin(ft.View):
 
         date_picker = ft.DatePicker(
             first_date=datetime(
-                year=2024, month=10, day=31),
+                year=2025, month=1, day=1),
             last_date=datetime(
-                year=2024, month=12, day=31),
+                year=2025, month=12, day=31),
             on_change=handle_date,
         )
 

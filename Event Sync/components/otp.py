@@ -6,7 +6,7 @@ class Otp(ft.View):
         super().__init__(route="/otp")
 
         self.page = page
-        self.addr = "http://127.0.0.1:5000"
+        self.addr = "https://chiefban.pythonanywhere.com/"
         self.user_email = self.page.client_storage.get("email")
 
         def handle_submit(e):

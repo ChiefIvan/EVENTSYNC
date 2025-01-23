@@ -29,9 +29,8 @@ class Login(ft.View):
 
                 if int(data["privilege"]) == 1:
                     self.page.go("/admin")
-                    return 
-                
-                self.page.go("/user")
+                else:
+                    self.page.go("/user")
 
             except RequestException as err:
                 self.page.snack_bar = ft.SnackBar(content=ft.Text(
