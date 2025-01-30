@@ -13,6 +13,7 @@ def main(page: ft.Page):
     page.title = "EventSync"
     page.description = "Nothing Special"
     page.route = "/login"
+    page.theme_mode = "light"
     page.fonts = {
         "Poppins": "/fonts/Poppins-Medium.ttf",
         "Poppins-Bold": "/fonts/Poppins-Bold.ttf"

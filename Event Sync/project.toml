@@ -1,0 +1,16 @@
+[project]
+name = "Event Sync"
+version = "1.0.0"
+description = "An Event Management System"
+readme = "README.md"
+dependencies = ["flet", "requests"]
+
+[tool.flet]
+org = "com.flet.eventsync"
+product = "Event Sync"
+company = "Flet"
+copyright = "Copyright (C) 2025 by Flet"
+build_number = 1
+
+[tool.flet.app]
+path = "../Event Sync"

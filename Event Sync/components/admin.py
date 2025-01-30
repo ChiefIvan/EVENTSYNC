@@ -5,7 +5,7 @@ from requests import post, get, RequestException
 
 class Admin(ft.View):
     def __init__(self, page):
-        super().__init__(route="/admin", scroll=ft.ScrollMode.AUTO)
+        super().__init__(scroll=ft.ScrollMode.HIDDEN, route="/admin")
 
         self.page = page
         self.index = 0
@@ -101,9 +101,9 @@ class Admin(ft.View):
                                             alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                                             controls=[
                                                 ft.Text(value=event["event_date"],
-                                                        italic=True, color=ft.Colors.GREY_300, size=10),
+                                                        italic=True, color=ft.Colors.GREY_500, size=10),
                                                 ft.Text(value=f"{event['event_start_time']} - {event['event_end_time']}",
-                                                        italic=True, color=ft.Colors.GREY_300, size=10)
+                                                        italic=True, color=ft.Colors.GREY_500, size=10)
                                             ]
                                         ),
                                         ft.Row(
@@ -244,11 +244,9 @@ class Admin(ft.View):
                         self.update()
 
                         for user in users:
-
-
                             user_lv.controls.append(
                                 ft.Container(
-                                    on_click=lambda e, user=user: print(user),
+                                    on_click=lambda e, user=user: lambda: handle_selected_user(user["img"], user[""]),
                                     ink=True,
                                     padding=10,
                                     content=ft.Row(
@@ -455,9 +453,9 @@ class Admin(ft.View):
                                         horizontal_alignment=ft.CrossAxisAlignment.CENTER,
                                         controls=[
                                             ft.Text(value="eventsync.admin@dorsu.edu.ph",
-                                            color=ft.Colors.GREY_300),
+                                            color=ft.Colors.GREY_500),
                                             ft.Text(value="Hello Admin!",
-                                            weight=ft.FontWeight.BOLD, size=20, color=ft.Colors.GREY_300)
+                                            weight=ft.FontWeight.BOLD, size=20, color="#4c4c4c",)
                                         ]
                                     )
                                 ]
@@ -500,8 +498,9 @@ class Admin(ft.View):
         zero_count_msg = ft.Text(value="No Event's Yet!", visible=False)
         zero_count_msg_user = ft.Text(value="No User's Yet!", visible=False)
 
-        event_title = ft.TextField(label="Event Title")
+        event_title = ft.TextField(label="Event Title", border_width="0", color="#4c4c4c", bgcolor="#03f8fc", border_radius=ft.border_radius.all(25))
         description = ft.TextField(label="Description",
+                                   color="#4c4c4c", border_width="0", bgcolor="#03f8fc", border_radius=ft.border_radius.all(25),
                                    multiline=True, max_lines=8)
         date_text = ft.Text(value="Select Date")
         start_time_text = ft.Text(value="Start Time")

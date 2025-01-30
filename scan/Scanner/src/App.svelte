@@ -100,9 +100,7 @@
   }
 
   const onScanSuccess = async (decodedText, decodedResult) => {
-    alert(decodedText);
     await handleSubmit(decodedText);
-    console.log(decodedResult);
   };
 
   const onScanFailure = (error) => {

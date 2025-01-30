@@ -216,17 +216,20 @@ class Signup(ft.View):
         cnfrm_password_msg = ft.Text(value="Password and Password (Confirm) must be the same", visible=False, size=10, italic=True)
 
         email_field = ft.TextField(
-            label="Email", suffix_text="@gmail.com", border_width="1", on_change=handle_email_change)
+            label="Email", suffix_text="@gmail.com", border_width="0", on_change=handle_email_change, color="#4c4c4c", bgcolor="#03f8fc", border_radius=ft.border_radius.all(100))
         fname_field = ft.TextField(
-            label="Fullname", border_width="1", on_change=handle_fname_change)
+            label="Fullname", border_width="0", on_change=handle_fname_change, color="#4c4c4c", bgcolor="#03f8fc", border_radius=ft.border_radius.all(100))
         s_id_field = ft.TextField(
-            label="Student ID", suffix_text="Ex. 2020-2110", border_width="1", on_change=handle_s_id_change)
+            label="Student ID", suffix_text="Ex. 2020-2110", border_width="0", on_change=handle_s_id_change, color="#4c4c4c", bgcolor="#03f8fc", border_radius=ft.border_radius.all(100))
         institute_dropdown = ft.Dropdown(
             label="Institute",
             width=1000,
-            border_width="1",
+            border_width="0",
             tooltip="Choose your Institute",
             on_change=handle_institute_dropdown,
+            color="#4c4c4c",
+            bgcolor="#03f8fc",
+            border_radius=ft.border_radius.all(25),
             options=[
                 ft.dropdown.Option(
                     "FCDSET"),
@@ -237,14 +240,17 @@ class Signup(ft.View):
         program_dropdown = ft.Dropdown(
             label="Program",
             width=1000,
-            border_width="1",
+            border_width="0",
+            color="#4c4c4c",
+            bgcolor="#03f8fc",
+            border_radius=ft.border_radius.all(25),
             on_change=handle_program_dropdown,
             tooltip="Choose your Program",
         )
         password_field = ft.TextField(label="Password", password="True", can_reveal_password=True,
-                                      border_width="1", on_change=handle_password_change)
+                                      border_width="0", on_change=handle_password_change, color="#4c4c4c", bgcolor="#03f8fc", border_radius=ft.border_radius.all(100))
         cnfrm_password_field = ft.TextField(label="Password (Confirm)", password="True", can_reveal_password=True,
-                                            border_width="1", on_change=handle_cnfrm_password_change)
+                                            border_width="0", on_change=handle_cnfrm_password_change, color="#4c4c4c", bgcolor="#03f8fc", border_radius=ft.border_radius.all(100))
         button = ft.FilledButton(text="SIGNUP", on_click=handle_signup,
                                  width="500", height="40")
         pr = ft.ProgressRing(width=32, height=32,

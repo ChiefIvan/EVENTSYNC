@@ -1,14 +1,11 @@
 import flet as ft
 
-# from barcode import EAN13
-# from barcode.writer import ImageWriter
 from requests import get, post, RequestException
 from base64 import b64encode
-from io import BytesIO
 
 class User(ft.View):
     def __init__(self, page):
-        super().__init__(route="/user", scroll=ft.ScrollMode.AUTO)
+        super().__init__(scroll=ft.ScrollMode.HIDDEN, route="/user")
 
         self.page = page
         self.index = 0
@@ -136,17 +133,13 @@ class User(ft.View):
                     if data["img"]:
                         user_img.src_base64 = data["img"]
 
+
                     name.value = data["full_name"]
                     email.value = data["email"]
                     institute.value = data["institute"]
                     program.value = data["program"]
                     bar_code.value = data["code"]
-                    # data = EAN13((data["code"]), writer=ImageWriter(), no_checksum=True)
-                    # io = BytesIO()
-                    # data.write(io)
-                    # barcode_base64 = b64encode(io.getvalue()).decode('utf-8')
-                    # code.src_base64 = barcode_base64
-
+                    code.src_base64 = data["barcode"]
 
                 except RequestException as err:
                     self.page.snack_bar = ft.SnackBar(content=ft.Text(
@@ -356,7 +349,7 @@ class User(ft.View):
         institute = ft.Text()
         program = ft.Text()
         bar_code = ft.Text()
-        code = ft.Image(src="", width=250, height=200)
+        code = ft.Image(src_base64="", width=250, height=200)
 
 
         update_view()

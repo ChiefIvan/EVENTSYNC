@@ -119,9 +119,9 @@ class Login(ft.View):
                 self.update()
 
         email_field = ft.TextField(
-            label="Username", border_width="1", on_change=handle_input)
+            label="Username", border_width="0", on_change=handle_input, color="#4c4c4c", bgcolor="#03f8fc", border_radius=ft.border_radius.all(100))
         password_field = ft.TextField(label="Password", password="True", can_reveal_password=True,
-                                      border_width="1", on_change=handle_input)
+                                      border_width="0", on_change=handle_input, color="#4c4c4c", bgcolor="#03f8fc", border_radius=ft.border_radius.all(100))
         button = ft.FilledButton(text="LOGIN", on_click=handle_login,
                                  width="500", height="40")
         pr = ft.ProgressRing(width=32, height=32,

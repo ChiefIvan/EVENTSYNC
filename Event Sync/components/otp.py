@@ -53,13 +53,14 @@ class Otp(ft.View):
 
                 self.update()
 
-        text_field = ft.TextField(label="Enter a Pin", border_width="1")
+        text_field = ft.TextField(label="Enter a Pin", border_width="0", bgcolor="#03f8fc", border_radius=ft.border_radius.all(25))
         pr = ft.ProgressRing(width=32, height=32,
                              stroke_width=4, visible=False)
         button = ft.FilledButton(text="Submit", on_click=handle_submit,
                                  width="500", height="40")
 
         self.controls = [
+            ft.Row(height=40),
             ft.Text("Please enter the pin sent from your email!", size="12", italic=True),
             text_field,
             button,

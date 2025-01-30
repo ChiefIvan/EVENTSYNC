@@ -7,6 +7,9 @@ from uuid import uuid4
 from io import BytesIO
 from PIL import Image
 from os import path
+from barcode import EAN13
+from barcode.writer import ImageWriter
+
 
 from . import db, app
 from .models import Event, User, Revoked, user_event
@@ -25,6 +28,13 @@ def handle_file(name):
         return b64encode(img).decode('utf-8')
     
     return None
+
+def create_barcode(code):
+    data = EAN13(code, writer=ImageWriter(), no_checksum=True)
+    io = BytesIO()
+    data.write(io)
+    return b64encode(io.getvalue()).decode('utf-8')
+
 
 @views.route("/get_privilege", methods=["GET"])
 @jwt_required()
@@ -45,6 +55,7 @@ def get_user_info():
     query = User.query.filter_by(id=current_user)
     user = query.first()
 
+    code = user.code
     return jsonify({
         "img":  handle_file(user.img),
         "email": user.email,
@@ -52,7 +63,8 @@ def get_user_info():
         "privilege": user.privilege,
         "institute": user.institute,
         "program": user.program,
-        "code": user.code,
+        "code": code,
+        "barcode": create_barcode(code),
     }), 200
     
 
@@ -70,10 +82,15 @@ def get_all_reg_users():
 @jwt_required()
 def get_all_users():
     users = User.query.all()
+
     return jsonify([{
         "img": handle_file(user.img),
         "full_name": user.full_name,
         "institute": user.institute,
+        "program": user.program,
+        "privilege": "User",
+        "code": user.code,
+        "barcode": create_barcode(user.code)
     } for user in users if user.full_name != "Admin"])
 
 
