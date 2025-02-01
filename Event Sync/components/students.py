@@ -52,7 +52,6 @@ class Students(ft.View):
                         )
                     )
 
-                self.update()
                 
 
             except RequestException as err:

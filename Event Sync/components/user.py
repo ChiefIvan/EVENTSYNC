@@ -136,6 +136,7 @@ class User(ft.View):
 
                     name.value = data["full_name"]
                     email.value = data["email"]
+                    s_id.value = data["s_id"]
                     institute.value = data["institute"]
                     program.value = data["program"]
                     bar_code.value = data["code"]
@@ -174,6 +175,13 @@ class User(ft.View):
                                 controls=[
                                     ft.Text("Email"),
                                     email,
+                                ]
+                            ),
+                            ft.Row(
+                                alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                                controls=[
+                                    ft.Text("Student ID"),
+                                    s_id,
                                 ]
                             ),
                             ft.Row(
@@ -346,6 +354,7 @@ class User(ft.View):
         name = ft.Text(size=20)
         privilege = ft.Text("User", text_align=ft.TextAlign.CENTER, size=10, italic=True)
         email = ft.Text()
+        s_id = ft.Text()
         institute = ft.Text()
         program = ft.Text()
         bar_code = ft.Text()

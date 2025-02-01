@@ -1,6 +1,7 @@
 from flask import Blueprint, request, jsonify
 from flask_jwt_extended import jwt_required, get_jwt_identity, get_jwt
 
+from sqlalchemy.orm import joinedload
 from datetime import datetime
 from base64 import b64decode,b64encode
 from uuid import uuid4
@@ -30,7 +31,7 @@ def handle_file(name):
     return None
 
 def create_barcode(code):
-    data = EAN13(code, writer=ImageWriter(), no_checksum=True)
+    data = EAN13(code, writer=ImageWriter())
     io = BytesIO()
     data.write(io)
     return b64encode(io.getvalue()).decode('utf-8')
@@ -61,6 +62,7 @@ def get_user_info():
         "email": user.email,
         "full_name": user.full_name,
         "privilege": user.privilege,
+        "s_id": user.s_id,
         "institute": user.institute,
         "program": user.program,
         "code": code,
@@ -86,12 +88,25 @@ def get_all_users():
     return jsonify([{
         "img": handle_file(user.img),
         "full_name": user.full_name,
+        "s_id": user.s_id,
         "institute": user.institute,
         "program": user.program,
         "privilege": "User",
         "code": user.code,
         "barcode": create_barcode(user.code)
     } for user in users if user.full_name != "Admin"])
+
+
+@views.route("/delete_event", methods=["POST"])
+@jwt_required()
+def get_all_users():
+    data = request.json
+
+    event = Event.user.query.filter_by(data["id"])
+
+    if event:
+        db.session.delete(event)
+        db.session.commit()
 
 
 @views.route("/upl_prf", methods=["POST"])

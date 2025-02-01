@@ -66,12 +66,11 @@ def signup():
         
         break
 
-    print(barcode)
-
     new_user = User(
         email=data["email"],
         full_name=data["fname"],
         privilege="0",
+        s_id=data["s_id_field"],
         institute=data["i_drp"],
         program=data["p_drp"],
         code=barcode,

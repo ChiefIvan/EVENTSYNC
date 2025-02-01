@@ -6,9 +6,11 @@ __pycache__/
 # C extensions
 *.so
 
+sample.java
+
 # Distribution / packaging
 .Python
-build/
+# build/
 develop-eggs/
 dist/
 downloads/

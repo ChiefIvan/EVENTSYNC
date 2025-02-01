@@ -6,6 +6,7 @@ from components.admin import Admin
 from components.user import User
 from components.otp import Otp
 from components.students import Students
+from components.selected_user import SelectedUser
 
 def main(page: ft.Page):
     page.window.width = 400
@@ -35,6 +36,12 @@ def main(page: ft.Page):
             page.views.append(
                 Otp(page)
         )
+            
+
+        if page.route == "/selected_user":
+            page.views.append(
+                SelectedUser(page)
+        )   
         
 
         if page.route == "/signup":

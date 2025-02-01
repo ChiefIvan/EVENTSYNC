@@ -1,16 +1,21 @@
 <script>
   import { onMount } from "svelte";
-  import { fade } from "svelte/transition";
+  import { fly } from "svelte/transition";
+  import { quintOut } from "svelte/easing";
   import { Html5Qrcode } from "html5-qrcode";
 
   let isScanningDataHasValues = $state(false);
   let isLoading = $state(false);
   let scanning = $state(false);
+  let isWarning = $state(true);
+  let showPopup = $state(false);
   let scanner = $state(null);
+  let msg = $state("");
+  let timeOut;
 
   let scanningData = $state({ id: "", name: "", token: "" });
 
-  const addr = "http://127.0.0.1:5000/views/register_user";
+  const addr = "https://chiefban.pythonanywhere.com/views/register_user";
   const { error, log } = console;
 
   onMount(() => {
@@ -49,6 +54,16 @@
     );
   });
 
+  const handleModal = (e) => {
+    clearTimeout(timeOut);
+
+    showPopup = true;
+
+    timeOut = setTimeout(() => {
+      showPopup = false;
+    }, 5000);
+  };
+
   const handleSubmit = async (codeData) => {
     isLoading = true;
 
@@ -68,15 +83,20 @@
       const response = await request.json();
 
       if (request.ok) {
-        alert("Attendance marked successfully.");
+        msg = "Attendance marked successfully.";
+        isWarning = false;
+        handleModal();
       } else {
-        // alert(response.msg);
+        msg = response.msg;
+        handleModal();
       }
     } catch (err) {
-      // alert("Server Unreachable, please try again!");
+      msg = "Server unreachable, please try again!";
+      handleModal();
       error(err);
     } finally {
       isLoading = false;
+      isWarning = true;
     }
   };
 
@@ -108,14 +128,85 @@
   };
 </script>
 
-<div id="reader"></div>
-<h1>{scanningData.name}</h1>
-
-{#if isLoading}
-  <div class="bar-wrapper">
-    <div transition:fade class="bar"></div>
+{#if showPopup}
+  <div
+    class="popup-wrapper"
+    transition:fly={{ y: -100, delay: 200, duration: 500, easing: quintOut }}
+  >
+    <div class="popup">
+      <div class="icon-wrapper">
+        {#if isWarning}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="50"
+            height="50"
+            viewBox="0 0 256 256"
+            ><path
+              fill="orangered"
+              d="M236.8 188.09L149.35 36.22a24.76 24.76 0 0 0-42.7 0L19.2 188.09a23.51 23.51 0 0 0 0 23.72A24.35 24.35 0 0 0 40.55 224h174.9a24.35 24.35 0 0 0 21.33-12.19a23.51 23.51 0 0 0 .02-23.72M120 104a8 8 0 0 1 16 0v40a8 8 0 0 1-16 0Zm8 88a12 12 0 1 1 12-12a12 12 0 0 1-12 12"
+            /></svg
+          >
+        {:else}
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="60"
+            height="60"
+            viewBox="0 0 18 18"
+            ><path
+              fill="#3890f4"
+              d="m10.5 13.4l4.9-4.9q.275-.275.7-.275t.7.275q.275.275.275.7t-.275.7l-5.6 5.6q-.3.3-.7.3t-.7-.3l-2.6-2.6q-.275-.275-.275-.7t.275-.7q.275-.275.7-.275t.7.275l1.9 1.9Z"
+            /></svg
+          >
+        {/if}
+      </div>
+      <h2>EventSync says</h2>
+      <p>{msg}</p>
+    </div>
   </div>
 {/if}
+
+{#if isLoading}
+  <div class="spinner-wrapper">
+    <svg class="spinner" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+      ><g stroke="#3890f4"
+        ><circle
+          cx="12"
+          cy="12"
+          r="9.5"
+          fill="none"
+          stroke-linecap="round"
+          stroke-width="3"
+          ><animate
+            attributeName="stroke-dasharray"
+            calcMode="spline"
+            dur="1.5s"
+            keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1"
+            keyTimes="0;0.475;0.95;1"
+            repeatCount="indefinite"
+            values="0 150;42 150;42 150;42 150"
+          /><animate
+            attributeName="stroke-dashoffset"
+            calcMode="spline"
+            dur="1.5s"
+            keySplines="0.42,0,0.58,1;0.42,0,0.58,1;0.42,0,0.58,1"
+            keyTimes="0;0.475;0.95;1"
+            repeatCount="indefinite"
+            values="0;-16;-59;-59"
+          /></circle
+        ><animateTransform
+          attributeName="transform"
+          dur="2s"
+          repeatCount="indefinite"
+          type="rotate"
+          values="0 12 12;360 12 12"
+        /></g
+      ></svg
+    >
+  </div>
+{/if}
+
+<div id="reader"></div>
+<h1>{scanningData.name}</h1>
 
 <div class="button-wrapper">
   {#if scanning}
@@ -137,6 +228,40 @@
     font-family: "Poppins", Arial, Helvetica, sans-serif;
   }
 
+  div.popup-wrapper {
+    position: absolute;
+    top: 0.5rem;
+    left: 0;
+    right: 0;
+    z-index: 10;
+    display: flex;
+    justify-content: center;
+
+    & div.popup {
+      padding-inline: 2rem;
+      padding-block: 1rem;
+      background-color: #f7d4d4;
+      box-shadow: 1px 2px 10px rgba(0, 0, 0, 0.1);
+      border-radius: 0.5rem;
+      text-align: center;
+      max-width: 500px;
+
+      & div.icon-wrapper {
+        border-bottom: 1px solid #8d8d8d;
+      }
+
+      & h2 {
+        margin-top: 1rem;
+        font-size: 1.5rem;
+        font-weight: 900;
+      }
+
+      & p {
+        font-weight: 600;
+      }
+    }
+  }
+
   h1 {
     font-size: 2.5rem;
     display: flex;
@@ -144,44 +269,18 @@
     margin: 1rem 0;
   }
 
-  div.bar-wrapper {
+  div.spinner-wrapper {
     position: fixed;
     inset: 0;
     z-index: 9999;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: rgba(0, 0, 0, 0.7);
 
-    div.bar {
-      top: 0;
-      left: 0;
-      right: 0;
-      position: absolute;
-      width: 100%;
-      height: 4px;
-      background: var(--light-theme-color-2);
-      transition: ease-in-out 500ms;
-      overflow: hidden;
-    }
-
-    div.bar::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      height: 100%;
-      width: 50%;
-      background-color: #0053bd;
-      animation: progress 1200ms linear infinite;
-    }
-
-    @keyframes progress {
-      0% {
-        left: -50%;
-      }
-      50% {
-        width: 90%;
-      }
-      100% {
-        left: 120%;
-      }
+    svg.spinner {
+      max-width: 4rem;
+      min-width: 3rem;
     }
   }
 

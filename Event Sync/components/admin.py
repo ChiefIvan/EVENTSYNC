@@ -53,10 +53,43 @@ class Admin(ft.View):
 
         def handle_view_user(event_id):
             self.page.client_storage.set("event_id", event_id)
-            self.page.go("/view_reg_users")
-            
+            self.page.go("/view_reg_users")      
 
         def handle_mount():
+
+            def handle_event_delete(e_id):
+                try :
+                    response = post(
+                        f"{self.addr}/views/delete_event",
+                        headers={
+                            "Authorization": f"Bearer {self.TOKEN}"
+                        },
+                        json={
+                            "id": e_id
+                        }
+
+                    )
+
+                    if response.ok:
+                        self.page.snack_bar = ft.SnackBar(content=ft.Text(
+                        value="Event deleted Successfully!"),
+                        action="Okay",
+                    )
+
+                    self.page.snack_bar.open = True
+                    lv.visible = False
+                    self.page.update()
+                    handle_mount()
+
+                except RequestException as err:
+                    self.page.snack_bar = ft.SnackBar(content=ft.Text(
+                        value="Server Unreachable, try again!"),
+                        action="Okay",
+                    )
+
+                    self.page.snack_bar.open = True
+                    self.page.update()
+
             try:
                 pr.visible = True
                 self.page.update()
@@ -115,7 +148,7 @@ class Admin(ft.View):
                                                     icon_color="red",
                                                     icon_size=25,
                                                     tooltip="Delete record",
-                                                    on_click=handle_event_delete,
+                                                    on_click=lambda _: handle_event_delete(event["id"]),
                                                 ),
                                                 ft.IconButton(
                                                     icon=ft.Icons.COPY_ALL_ROUNDED,
@@ -134,6 +167,7 @@ class Admin(ft.View):
 
                 else:
                     zero_count_msg.visible = True
+                    lv.clean()
                     self.page.update()
 
 
@@ -178,6 +212,20 @@ class Admin(ft.View):
 
                 self.page.snack_bar.open = True
                 self.page.update()
+
+        def handle_selected_user(img, full_name, institue, program, privilege, code, barcode, s_id):
+            if  isinstance(img, str):
+                self.page.client_storage.set("img", img)
+
+            self.page.client_storage.set("full_name", full_name)
+            self.page.client_storage.set("institue", institue)
+            self.page.client_storage.set("program", program)
+            self.page.client_storage.set("privilege", privilege)
+            self.page.client_storage.set("code", code)
+            self.page.client_storage.set("barcode", barcode)
+            self.page.client_storage.set("s_id", s_id)
+
+            self.page.go("/selected_user")
 
         def update_view(is_called_by_function=False):
             if self.index == 0:
@@ -246,13 +294,19 @@ class Admin(ft.View):
                         for user in users:
                             user_lv.controls.append(
                                 ft.Container(
-                                    on_click=lambda e, user=user: lambda: handle_selected_user(user["img"], user[""]),
+                                    on_click=lambda e, user=user: handle_selected_user(user["img"], user["full_name"], user["institute"], user["program"], user["privilege"], user["code"], user["barcode"], user["s_id"]),
                                     ink=True,
                                     padding=10,
                                     content=ft.Row(
+                                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
                                         controls=[
-                                            ft.Image(src_base64=user["img"], src="../assets/img/user-icon.webp", width=70, height=70, border_radius=ft.border_radius.all(1000)),
+                                            ft.Row(
+                                                controls=[
+                                                    ft.Image(src_base64=user["img"], src="../assets/img/user-icon.webp", width=70, height=70, border_radius=ft.border_radius.all(1000)),
                                             ft.Text(user["full_name"])
+                                                ]
+                                            ),
+                                            ft.Text(user["s_id"])
                                         ]
                                     )
                                 )
@@ -278,8 +332,6 @@ class Admin(ft.View):
                     ...
                 
 
-
-
         def handle_nav_change(e):
             self.index = e.control.selected_index
             self.page.close(self.drawer)
@@ -296,18 +348,6 @@ class Admin(ft.View):
         def handle_end_time(e):
             end_time_text.value = end_time_selection.value
             self.page.update()
-
-        def handle_event_delete(e):
-            row = e.control.parent
-            column = row.control.parent
-
-            text_control = column.controls[0]
-
-            # try:
-            #     request = delete(
-            #         "http://127.0.0.1:5000/views/delete_event", json={})
-            # except:
-            #     ...
 
 
         def handle_add(e):

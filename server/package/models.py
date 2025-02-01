@@ -9,6 +9,7 @@ class User(db.Model):
     full_name = db.Column(db.String(30))
     privilege = db.Column(db.String(1))
     institute = db.Column(db.String(10))
+    s_id = db.Column(db.String(10))
     program = db.Column(db.String(30))
     code = db.Column(db.String(50))
     is_confirmed = db.Column(db.Boolean, default=False)
