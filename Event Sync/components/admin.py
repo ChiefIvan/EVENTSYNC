@@ -167,7 +167,6 @@ class Admin(ft.View):
 
                 else:
                     zero_count_msg.visible = True
-                    lv.clean()
                     self.page.update()
 
 
