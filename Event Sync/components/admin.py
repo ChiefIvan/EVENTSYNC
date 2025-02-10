@@ -213,8 +213,10 @@ class Admin(ft.View):
                 self.page.update()
 
         def handle_selected_user(img, full_name, institue, program, privilege, code, barcode, s_id):
-            if  isinstance(img, str):
+            if isinstance(img, str):
                 self.page.client_storage.set("img", img)
+            
+            print(img)
 
             self.page.client_storage.set("full_name", full_name)
             self.page.client_storage.set("institue", institue)

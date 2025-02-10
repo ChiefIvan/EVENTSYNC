@@ -3,7 +3,6 @@
 #
 
 list(APPEND FLUTTER_PLUGIN_LIST
-  permission_handler_windows
   screen_retriever_windows
   serious_python_windows
   url_launcher_windows

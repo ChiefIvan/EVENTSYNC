@@ -91,7 +91,6 @@ class Students(ft.View):
                 base64_pdf = data["pdf_base64"]
                 pdf_content = b64decode(base64_pdf)
 
-
                 try:
                     with open(path.join("/storage/emulated/0/Documents", f"{data['filename']}.pdf") , "wb") as pdf_file:
                         pdf_file.write(pdf_content)

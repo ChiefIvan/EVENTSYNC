@@ -67,7 +67,6 @@ class SelectedUser(ft.View):
         ]
 
         if isinstance(self.page.client_storage.get("img"), str):
-            base64_string = b64encode(self.page.client_storage.get("img")).decode('utf-8')
-            user_img.src_base64 = base64_string
+            user_img.src_base64 = self.page.client_storage.get("img")
 
         code.src_base64 = self.page.client_storage.get("barcode")
