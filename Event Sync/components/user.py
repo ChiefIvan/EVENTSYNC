@@ -249,26 +249,22 @@ class User(ft.View):
 
                     for event in events:
                         lv.controls.append(
-                            ft.Container(
-                                ink=True,
-                                padding=20, 
-                                content=ft.Column(
-                                    controls=[
-                                        ft.Text(value=event["event_name"],
-                                                weight=ft.FontWeight.BOLD, size=20),
-                                        ft.Text(value=event["event_description"],
-                                                color=ft.Colors.GREY_500),
-                                        ft.Row(
-                                            alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
-                                            controls=[
-                                                ft.Text(value=event["event_date"],
-                                                        italic=True, color=ft.Colors.GREY_300, size=10),
-                                                ft.Text(value=f"{event['event_start_time']} - {event['event_end_time']}",
-                                                        italic=True, color=ft.Colors.GREY_300, size=10)
-                                            ]
-                                        ),
-                                    ]
-                                )
+                            ft.ExpansionTile(
+                                title=ft.Text(value=event["event_name"],
+                                            weight=ft.FontWeight.BOLD, size=20),
+                                subtitle=ft.Row(
+                                        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+                                        controls=[
+                                            ft.Text(value=event["event_date"],
+                                                    italic=True, color=ft.Colors.GREY_300, size=10),
+                                            ft.Text(value=f"{event['event_start_time']} - {event['event_end_time']}",
+                                                    italic=True, color=ft.Colors.GREY_300, size=10)
+                                        ]
+                                    ),
+                                affinity=ft.TileAffinity.PLATFORM,
+                                maintain_state=True,
+                                controls=ft.Text(value=event["event_description"],
+                                            color=ft.Colors.GREY_500),
                             )
                         )
 

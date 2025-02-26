@@ -224,6 +224,54 @@ def register_user_to_event():
         return jsonify({
             "msg": "An unexpected error occurred"
         }), 500
+    
+
+@views.route("/generate_pdf", methods=["POST"])
+@jwt_required()
+def generate_pdf():
+    data = request.json
+    event = Event.query.filter_by(id=data["id"]).first()
+    registered_users = (
+      db.session.query(User)
+      .join(User.registered_events)
+      .filter(Event.id == data["id"])
+      .all()
+    )
+
+    if len(registered_users) == 0:
+        return jsonify({"msg": "No registered students yet!"}), 404
+
+    pdf_file_name = f"{event.event_name}.pdf"
+    pdf = canvas.Canvas(pdf_file_name, pagesize=letter)
+    pdf.setTitle("Present Students")
+
+    pdf.setFont("Courier", 12)
+
+    pdf.drawCentredString(300, 770, "Present Students")
+
+    table_data = [["Student Name", "Student ID", "Status"]]
+    for user in registered_users:
+        table_data.append([user.full_name, user.s_id, "Present"])
+
+    table = Table(table_data)
+    style = TableStyle([
+      ("FONTNAME", (0, 0), (-1, -1), "Courier"),
+      ("FONTSIZE", (0, 0), (-1, -1), 12),
+      ("ALIGN", (1, 0), (-1, -1), "CENTER"),
+      ("ALIGN", (0, 0), (0, -1), "LEFT"),
+      ("TEXTCOLOR", (0, 0), (-1, 0), colors.black),
+    ])
+    table.setStyle(style)
+
+    table.wrapOn(pdf, 50, 600)
+    table.drawOn(pdf, 50, 600)
+
+    pdf.save()
+
+    with open(pdf_file_name, "rb") as pdf_file:
+        base64_pdf = b64encode(pdf_file.read()).decode("utf-8")
+
+    return jsonify({"pdf_base64": base64_pdf, "filename": pdf_file_name})
 
     
 @views.route("/logout", methods=["GET"])

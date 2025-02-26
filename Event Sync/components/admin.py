@@ -304,10 +304,10 @@ class Admin(ft.View):
                                             ft.Row(
                                                 controls=[
                                                     ft.Image(src_base64=user["img"], src="../assets/img/user-icon.webp", width=70, height=70, border_radius=ft.border_radius.all(1000)),
-                                            ft.Text(user["full_name"])
+                                            ft.Text(user["full_name"], size=12)
                                                 ]
                                             ),
-                                            ft.Text(user["s_id"])
+                                            ft.Text(user["s_id"], size=13)
                                         ]
                                     )
                                 )
@@ -364,9 +364,9 @@ class Admin(ft.View):
                     
                     return
 
-                if len(description.value) > 1000:
+                if len(description.value) >= 200:
                     self.page.snack_bar = ft.SnackBar(content=ft.Text(
-                        value="Description must not exceed 1000 characters!"),
+                        value="Description must not exceed 200 characters!"),
                         action="Okay",
                     )
 
@@ -540,7 +540,7 @@ class Admin(ft.View):
         zero_count_msg_user = ft.Text(value="No User's Yet!", visible=False)
 
         event_title = ft.TextField(label="Event Title", border_width="0", color="#4c4c4c", bgcolor="#03f8fc", border_radius=ft.border_radius.all(25))
-        description = ft.TextField(label="Description",
+        description = ft.TextField(label="Subject",
                                    color="#4c4c4c", border_width="0", bgcolor="#03f8fc", border_radius=ft.border_radius.all(25),
                                    multiline=True, max_lines=8)
         date_text = ft.Text(value="Select Date")

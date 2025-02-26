@@ -1,12 +1,12 @@
 dependencies:
   cupertino_icons: ^1.0.6
-  flet: 0.25.1
+  flet: 0.25.2
   flutter:
     sdk: flutter
   package_info_plus: ^8.0.2
   path: ^1.9.0
   path_provider: ^2.1.4
-  serious_python: 0.8.3
+  serious_python: 0.8.7
   url_strategy: ^0.2.0
 dependency_overrides:
   wakelock_plus: ^1.2.5
