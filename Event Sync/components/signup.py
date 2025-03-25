@@ -14,19 +14,45 @@ class Signup(ft.View):
         self.addr = "https://chiefban.pythonanywhere.com/"
         self.spacing = 50
         self.dropdownOpt = {
-            "FCDSET": [
+            "FaCET": [
                 "BS Information Technology",
                 "BS Mathematics",
                 "BS in Civil Engineering",
-                "BI Technology Management"
+                "BI Technology Management",
             ],
             "FNAHS": [
                 "BS Nursing"
             ],
-            "FGBM": [
-                "BS Criminology",
+            "FBM": [
                 "BS Business Administration",
-            ]
+                "BS Hospitality Management"
+                ,
+            ],
+            "FCJE": [
+                "BS Criminology",
+            ],
+            "FHUSOCOM": [
+                "BS Psychology",
+                "AB Political Science",
+                "BS Development Communication",
+            ],
+            "FALS": [
+                "BS Biology",
+                "BS Agriculture",
+                "BS Agribusiness Management",
+                "BS Environmental Science",
+            ],
+            "FTED": [
+                "Bachelor of Elementary Education",
+                "Bachelor of Early Childhood Education",
+                "Bachelor of Physical Education",
+                "Bachelor of Special Needs Education",
+                "BS-English",
+                "BS-Mathematics",
+                "BS-Filipino",
+                "BS-Science",
+                "Bachelor of Technology Livelihood Education",
+            ],
         }
 
         def handle_email_change(e):
@@ -232,9 +258,13 @@ class Signup(ft.View):
             border_radius=ft.border_radius.all(25),
             options=[
                 ft.dropdown.Option(
-                    "FCDSET"),
+                    "FaCET"),
                 ft.dropdown.Option("FNAHS"),
-                ft.dropdown.Option("FGBM"),
+                ft.dropdown.Option("FBM"),
+                ft.dropdown.Option("FCJE"),
+                ft.dropdown.Option("FHUSOCOM"),
+                ft.dropdown.Option("FALS"),
+                ft.dropdown.Option("FTED"),
             ],
         )
         program_dropdown = ft.Dropdown(
